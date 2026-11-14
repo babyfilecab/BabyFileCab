@@ -88,6 +88,7 @@
           <button type="button" data-menu-action="change-password">Change Password…</button>
           <button type="button" data-menu-action="inbox-folder">Scan Inbox Folder…</button>
           <button type="button" data-menu-action="auto-backup">Automatic Backups…</button>
+          <button id="updateCheckMenuItem" type="button" role="menuitemcheckbox" data-menu-action="toggle-update-check">✓ Check for Updates</button>
           <div class="menu-separator"></div>
           <button type="button" data-menu-action="manage-users">Manage Users… <span class="menu-shortcut">M</span></button>
           <button type="button" data-menu-action="create-company-user">Create User Under Existing Company…</button>
@@ -128,6 +129,12 @@
         </div>
       </div>
     </nav>
+
+    <div id="updateBanner" class="update-banner hidden" role="status">
+      <span id="updateBannerText"></span>
+      <button id="updateDownload" class="primary" type="button">Download</button>
+      <button id="updateLater" class="secondary" type="button">Later</button>
+    </div>
 
     <header class="app-header">
       <div class="brand">
@@ -1789,6 +1796,7 @@
   <script src="js/recycle-bin.js"></script>
   <script src="js/inbox.js"></script>
   <script src="js/backups.js"></script>
+  <script src="js/updates.js"></script>
   <script src="js/menus.js"></script>
   <script src="js/dialogs.js"></script>
   <script src="js/app.js"></script>

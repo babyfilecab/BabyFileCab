@@ -90,6 +90,9 @@ async function handleMenuAction(action) {
       case 'global-find':
         showGlobalFind();
         break;
+      case 'toggle-update-check':
+        await toggleUpdateCheck();
+        break;
       case 'auto-backup':
         await showBackupSettings();
         break;

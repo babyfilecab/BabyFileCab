@@ -79,6 +79,7 @@ async function enterApplication(user) {
   refreshNeedsAttention({ atSignIn: true }).catch(() => {});
   startInboxWatch();
   startBackupSchedule();
+  checkForUpdate();
 }
 
 async function signOut() {
@@ -87,6 +88,7 @@ async function signOut() {
   $('needsAttentionBtn').classList.add('hidden');
   stopInboxWatch();
   stopBackupSchedule();
+  $('updateBanner')?.classList.add('hidden');
   hideCalendarScheduleClient();
   hideCalendarPreparerReassign();
   hideShortcutMapper();

@@ -53,6 +53,9 @@ type App struct {
 	calendarMu      sync.Mutex
 	recycleMu       sync.Mutex
 	backupMu        sync.Mutex
+	updateMu        sync.Mutex
+	lastUpdateCheck time.Time
+	lastUpdateInfo  UpdateInfo
 	auditMu         sync.Mutex
 	timesheetMu     sync.Mutex
 	tempMu          sync.Mutex
