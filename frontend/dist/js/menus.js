@@ -90,6 +90,9 @@ async function handleMenuAction(action) {
       case 'global-find':
         showGlobalFind();
         break;
+      case 'auto-backup':
+        await showBackupSettings();
+        break;
       case 'scan-inbox':
         await showInbox();
         break;

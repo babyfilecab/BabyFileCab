@@ -362,3 +362,19 @@ tr:first-child { background: var(--panel-2); font-weight: 600; }
 .inbox-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .inbox-item-info input { width: 100%; padding: 6px 9px; font-weight: 600; }
 :root[data-theme="dark"] .inbox-button { background: var(--accent-soft); border-color: rgba(59,130,246,.4); color: #93c5fd; }
+
+/* Automatic backups --------------------------------------------------------- */
+.backup-modal { width: min(640px, calc(100vw - 60px)); }
+.backup-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; font-size: 13px; font-weight: 600; color: var(--text-2); }
+.backup-folder-row { display: flex; gap: 8px; }
+.backup-folder-row input { flex: 1; padding: 8px 10px; }
+.backup-row { display: grid; grid-template-columns: 1fr 160px; gap: 12px; }
+.backup-row select, .backup-row input { padding: 8px 10px; }
+.backup-status { padding: 10px 12px; border-radius: 8px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 13px; }
+.backup-status.is-error { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+.backup-note { margin: 12px 0 0; font-size: 12.5px; }
+.link-button { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; text-decoration: underline; }
+.link-button:hover { background: none; color: var(--accent-hover); }
+:root[data-theme="dark"] .backup-status { background: rgba(22,163,74,.12); border-color: rgba(22,163,74,.35); color: #86efac; }
+:root[data-theme="dark"] .backup-status.is-error { background: rgba(185,28,28,.15); border-color: rgba(185,28,28,.4); color: #fca5a5; }
+:root[data-theme="dark"] .link-button { background: none; border: 0; color: #93c5fd; }

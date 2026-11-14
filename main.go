@@ -19,6 +19,9 @@ import (
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
+// appVersion must match "productVersion" in wails.json.
+const appVersion = "2.1.1"
+
 const (
 	appTitle             = "BabyFileCab — Local Document Management"
 	permanentFolder      = "Permanent Folder"
@@ -49,6 +52,7 @@ type App struct {
 	autoLockMinutes int
 	calendarMu      sync.Mutex
 	recycleMu       sync.Mutex
+	backupMu        sync.Mutex
 	auditMu         sync.Mutex
 	timesheetMu     sync.Mutex
 	tempMu          sync.Mutex
