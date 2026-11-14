@@ -42,6 +42,50 @@ export namespace main {
 	        this.details = source["details"];
 	    }
 	}
+	export class BackupInfo {
+	    path: string;
+	    createdAt: string;
+	    files: number;
+	    sizeBytes: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new BackupInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.path = source["path"];
+	        this.createdAt = source["createdAt"];
+	        this.files = source["files"];
+	        this.sizeBytes = source["sizeBytes"];
+	    }
+	}
+	export class BackupSettings {
+	    folder: string;
+	    frequency: string;
+	    keep: number;
+	    lastRun?: string;
+	    lastOk?: string;
+	    lastError?: string;
+	    lastFile?: string;
+	    lastSizeMb?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new BackupSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.folder = source["folder"];
+	        this.frequency = source["frequency"];
+	        this.keep = source["keep"];
+	        this.lastRun = source["lastRun"];
+	        this.lastOk = source["lastOk"];
+	        this.lastError = source["lastError"];
+	        this.lastFile = source["lastFile"];
+	        this.lastSizeMb = source["lastSizeMb"];
+	    }
+	}
 	export class ClientCommunication {
 	    name: string;
 	    email: string;
@@ -130,6 +174,22 @@ export namespace main {
 	        this.description = source["description"];
 	        this.size = source["size"];
 	        this.modified = source["modified"];
+	    }
+	}
+	export class DocumentVersion {
+	    id: string;
+	    savedAt: string;
+	    size: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new DocumentVersion(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.savedAt = source["savedAt"];
+	        this.size = source["size"];
 	    }
 	}
 	export class EngagementLetterLogoInfo {
@@ -270,6 +330,22 @@ export namespace main {
 	        this.match = source["match"];
 	    }
 	}
+	export class InboxFile {
+	    name: string;
+	    size: number;
+	    modified: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new InboxFile(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.size = source["size"];
+	        this.modified = source["modified"];
+	    }
+	}
 	export class InvoiceRequest {
 	    clientPath: string;
 	    preparerUsername: string;
@@ -320,70 +396,6 @@ export namespace main {
 	        this.html = source["html"];
 	    }
 	}
-	export class PDFSearchMatch {
-	    page: number;
-	    snippet: string;
-	    x: number;
-	    y: number;
-	    width: number;
-	    height: number;
-	    pageWidth: number;
-	    pageHeight: number;
-	
-	    static createFrom(source: any = {}) {
-	        return new PDFSearchMatch(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.page = source["page"];
-	        this.snippet = source["snippet"];
-	        this.x = source["x"];
-	        this.y = source["y"];
-	        this.width = source["width"];
-	        this.height = source["height"];
-	        this.pageWidth = source["pageWidth"];
-	        this.pageHeight = source["pageHeight"];
-	    }
-	}
-	export class PDFSearchResponse {
-	    query: string;
-	    total: number;
-	    results: PDFSearchMatch[];
-	    searchable: boolean;
-	    message?: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new PDFSearchResponse(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.query = source["query"];
-	        this.total = source["total"];
-	        this.results = this.convertValues(source["results"], PDFSearchMatch);
-	        this.searchable = source["searchable"];
-	        this.message = source["message"];
-	    }
-	
-		convertValues(a: any, classs: any, asMap: boolean = false): any {
-		    if (!a) {
-		        return a;
-		    }
-		    if (a.slice && a.map) {
-		        return (a as any[]).map(elem => this.convertValues(elem, classs));
-		    } else if ("object" === typeof a) {
-		        if (asMap) {
-		            for (const key of Object.keys(a)) {
-		                a[key] = new classs(a[key]);
-		            }
-		            return a;
-		        }
-		        return new classs(a);
-		    }
-		    return a;
-		}
-	}
 	export class Preview {
 	    kind: string;
 	    name: string;
@@ -408,6 +420,32 @@ export namespace main {
 	        this.rows = source["rows"];
 	        this.pageCount = source["pageCount"];
 	        this.message = source["message"];
+	    }
+	}
+	export class RecycleItem {
+	    id: string;
+	    name: string;
+	    kind: string;
+	    originalKey: string;
+	    location: string;
+	    deletedAt: string;
+	    deletedBy: string;
+	    expiresAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RecycleItem(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.kind = source["kind"];
+	        this.originalKey = source["originalKey"];
+	        this.location = source["location"];
+	        this.deletedAt = source["deletedAt"];
+	        this.deletedBy = source["deletedBy"];
+	        this.expiresAt = source["expiresAt"];
 	    }
 	}
 	export class TimeSheetEntry {
@@ -479,6 +517,24 @@ export namespace main {
 		    }
 		    return a;
 		}
+	}
+	export class UpdateInfo {
+	    available: boolean;
+	    current: string;
+	    latest: string;
+	    url: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.available = source["available"];
+	        this.current = source["current"];
+	        this.latest = source["latest"];
+	        this.url = source["url"];
+	    }
 	}
 	export class UserProfile {
 	    username: string;

@@ -14,6 +14,10 @@ export function AddTaxYear(arg1, arg2) {
   return window['go']['main']['App']['AddTaxYear'](arg1, arg2);
 }
 
+export function AppVersion() {
+  return window['go']['main']['App']['AppVersion']();
+}
+
 export function ArchiveClient(arg1) {
   return window['go']['main']['App']['ArchiveClient'](arg1);
 }
@@ -26,12 +30,28 @@ export function AssignClientToFirmCalendarForPreparer2026(arg1, arg2, arg3) {
   return window['go']['main']['App']['AssignClientToFirmCalendarForPreparer2026'](arg1, arg2, arg3);
 }
 
+export function BackUpNow() {
+  return window['go']['main']['App']['BackUpNow']();
+}
+
 export function BackupClient(arg1) {
   return window['go']['main']['App']['BackupClient'](arg1);
 }
 
 export function ChangePassword(arg1, arg2, arg3) {
   return window['go']['main']['App']['ChangePassword'](arg1, arg2, arg3);
+}
+
+export function CheckForUpdate() {
+  return window['go']['main']['App']['CheckForUpdate']();
+}
+
+export function ChooseBackupFolder() {
+  return window['go']['main']['App']['ChooseBackupFolder']();
+}
+
+export function ChooseBackupToRestore() {
+  return window['go']['main']['App']['ChooseBackupToRestore']();
 }
 
 export function ChooseEngagementLetterLogo() {
@@ -46,12 +66,20 @@ export function ChooseEngagementLetterSavePath(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['ChooseEngagementLetterSavePath'](arg1, arg2, arg3, arg4);
 }
 
+export function ChooseInboxFolder() {
+  return window['go']['main']['App']['ChooseInboxFolder']();
+}
+
 export function ChooseInvoiceSavePath(arg1, arg2, arg3) {
   return window['go']['main']['App']['ChooseInvoiceSavePath'](arg1, arg2, arg3);
 }
 
 export function ClearEngagementLetterLogo() {
   return window['go']['main']['App']['ClearEngagementLetterLogo']();
+}
+
+export function ClearInboxFolder() {
+  return window['go']['main']['App']['ClearInboxFolder']();
 }
 
 export function CreateUserUnderExistingCompany(arg1) {
@@ -74,6 +102,10 @@ export function DeleteFile(arg1) {
   return window['go']['main']['App']['DeleteFile'](arg1);
 }
 
+export function DeleteFromRecycleBin(arg1) {
+  return window['go']['main']['App']['DeleteFromRecycleBin'](arg1);
+}
+
 export function DeleteSection(arg1) {
   return window['go']['main']['App']['DeleteSection'](arg1);
 }
@@ -86,6 +118,10 @@ export function DeleteTimeSheetEntry(arg1) {
   return window['go']['main']['App']['DeleteTimeSheetEntry'](arg1);
 }
 
+export function EmptyRecycleBin() {
+  return window['go']['main']['App']['EmptyRecycleBin']();
+}
+
 export function EngagementLetterDefaultOutput(arg1, arg2, arg3) {
   return window['go']['main']['App']['EngagementLetterDefaultOutput'](arg1, arg2, arg3);
 }
@@ -96,6 +132,10 @@ export function EnrollExistingUser(arg1, arg2) {
 
 export function ExitBabyFileCab() {
   return window['go']['main']['App']['ExitBabyFileCab']();
+}
+
+export function FileInboxDocument(arg1, arg2, arg3) {
+  return window['go']['main']['App']['FileInboxDocument'](arg1, arg2, arg3);
 }
 
 export function GenerateEngagementLetter(arg1, arg2) {
@@ -118,6 +158,10 @@ export function GetAutoLockMinutes() {
   return window['go']['main']['App']['GetAutoLockMinutes']();
 }
 
+export function GetBackupSettings() {
+  return window['go']['main']['App']['GetBackupSettings']();
+}
+
 export function GetClientCommunications() {
   return window['go']['main']['App']['GetClientCommunications']();
 }
@@ -138,12 +182,20 @@ export function GetFirmCalendar2026() {
   return window['go']['main']['App']['GetFirmCalendar2026']();
 }
 
+export function GetInboxFolder() {
+  return window['go']['main']['App']['GetInboxFolder']();
+}
+
 export function GetNotes(arg1) {
   return window['go']['main']['App']['GetNotes'](arg1);
 }
 
 export function GetNotesDocument(arg1) {
   return window['go']['main']['App']['GetNotesDocument'](arg1);
+}
+
+export function GetPDFData(arg1) {
+  return window['go']['main']['App']['GetPDFData'](arg1);
 }
 
 export function GetPreview(arg1) {
@@ -156,6 +208,10 @@ export function GetTimeSheetEntries() {
 
 export function GetTree() {
   return window['go']['main']['App']['GetTree']();
+}
+
+export function GetUpdateCheckEnabled() {
+  return window['go']['main']['App']['GetUpdateCheckEnabled']();
 }
 
 export function GlobalFind(arg1) {
@@ -182,6 +238,18 @@ export function ListCompanyUsers() {
   return window['go']['main']['App']['ListCompanyUsers']();
 }
 
+export function ListDocumentVersions(arg1) {
+  return window['go']['main']['App']['ListDocumentVersions'](arg1);
+}
+
+export function ListInbox() {
+  return window['go']['main']['App']['ListInbox']();
+}
+
+export function ListRecycleBin() {
+  return window['go']['main']['App']['ListRecycleBin']();
+}
+
 export function LogAppEvent(arg1, arg2) {
   return window['go']['main']['App']['LogAppEvent'](arg1, arg2);
 }
@@ -206,6 +274,10 @@ export function OpenDataFolder() {
   return window['go']['main']['App']['OpenDataFolder']();
 }
 
+export function OpenDocumentVersion(arg1, arg2) {
+  return window['go']['main']['App']['OpenDocumentVersion'](arg1, arg2);
+}
+
 export function OpenFile(arg1) {
   return window['go']['main']['App']['OpenFile'](arg1);
 }
@@ -216,6 +288,14 @@ export function OpenIRSCurrencyExchangeRatesPage() {
 
 export function OpenIRSPaymentPage() {
   return window['go']['main']['App']['OpenIRSPaymentPage']();
+}
+
+export function OpenInboxFile(arg1) {
+  return window['go']['main']['App']['OpenInboxFile'](arg1);
+}
+
+export function OpenReleasePage(arg1) {
+  return window['go']['main']['App']['OpenReleasePage'](arg1);
 }
 
 export function ReassignClientInFirmCalendar2026(arg1, arg2, arg3) {
@@ -250,12 +330,28 @@ export function RenameTaxYear(arg1, arg2) {
   return window['go']['main']['App']['RenameTaxYear'](arg1, arg2);
 }
 
-export function RenderPDFPage(arg1, arg2) {
-  return window['go']['main']['App']['RenderPDFPage'](arg1, arg2);
-}
-
 export function RestoreClient(arg1) {
   return window['go']['main']['App']['RestoreClient'](arg1);
+}
+
+export function RestoreDocumentVersion(arg1, arg2) {
+  return window['go']['main']['App']['RestoreDocumentVersion'](arg1, arg2);
+}
+
+export function RestoreFromRecycleBin(arg1) {
+  return window['go']['main']['App']['RestoreFromRecycleBin'](arg1);
+}
+
+export function RestoreFullBackup(arg1) {
+  return window['go']['main']['App']['RestoreFullBackup'](arg1);
+}
+
+export function RunScheduledBackup() {
+  return window['go']['main']['App']['RunScheduledBackup']();
+}
+
+export function SaveBackupSettings(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SaveBackupSettings'](arg1, arg2, arg3);
 }
 
 export function SaveDocumentDescription(arg1, arg2) {
@@ -274,10 +370,6 @@ export function SaveTimeSheetEntry(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['SaveTimeSheetEntry'](arg1, arg2, arg3, arg4);
 }
 
-export function SearchPDF(arg1, arg2) {
-  return window['go']['main']['App']['SearchPDF'](arg1, arg2);
-}
-
 export function SessionActive() {
   return window['go']['main']['App']['SessionActive']();
 }
@@ -292,6 +384,10 @@ export function SetDocumentEnteredDone(arg1, arg2) {
 
 export function SetFirmCalendarStatus2026(arg1, arg2, arg3) {
   return window['go']['main']['App']['SetFirmCalendarStatus2026'](arg1, arg2, arg3);
+}
+
+export function SetUpdateCheckEnabled(arg1) {
+  return window['go']['main']['App']['SetUpdateCheckEnabled'](arg1);
 }
 
 export function TouchActivity() {

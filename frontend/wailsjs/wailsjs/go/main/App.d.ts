@@ -8,15 +8,25 @@ export function AddSection(arg1:string,arg2:string):Promise<string>;
 
 export function AddTaxYear(arg1:string,arg2:string):Promise<string>;
 
+export function AppVersion():Promise<string>;
+
 export function ArchiveClient(arg1:string):Promise<string>;
 
 export function AssignClientToFirmCalendar2026(arg1:string,arg2:string):Promise<Array<main.FirmCalendarAssignment>>;
 
 export function AssignClientToFirmCalendarForPreparer2026(arg1:string,arg2:string,arg3:string):Promise<Array<main.FirmCalendarAssignment>>;
 
+export function BackUpNow():Promise<main.BackupSettings>;
+
 export function BackupClient(arg1:string):Promise<string>;
 
 export function ChangePassword(arg1:string,arg2:string,arg3:string):Promise<void>;
+
+export function CheckForUpdate():Promise<main.UpdateInfo>;
+
+export function ChooseBackupFolder():Promise<string>;
+
+export function ChooseBackupToRestore():Promise<main.BackupInfo>;
 
 export function ChooseEngagementLetterLogo():Promise<main.EngagementLetterLogoInfo>;
 
@@ -24,9 +34,13 @@ export function ChooseEngagementLetterOutput(arg1:string):Promise<string>;
 
 export function ChooseEngagementLetterSavePath(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
 
+export function ChooseInboxFolder():Promise<string>;
+
 export function ChooseInvoiceSavePath(arg1:string,arg2:string,arg3:string):Promise<string>;
 
 export function ClearEngagementLetterLogo():Promise<void>;
+
+export function ClearInboxFolder():Promise<void>;
 
 export function CreateUserUnderExistingCompany(arg1:main.ExistingCompanyUserRegistration):Promise<main.UserProfile>;
 
@@ -38,17 +52,23 @@ export function DeleteClient(arg1:string):Promise<void>;
 
 export function DeleteFile(arg1:string):Promise<void>;
 
+export function DeleteFromRecycleBin(arg1:string):Promise<void>;
+
 export function DeleteSection(arg1:string):Promise<void>;
 
 export function DeleteTaxYear(arg1:string):Promise<void>;
 
 export function DeleteTimeSheetEntry(arg1:string):Promise<Array<main.TimeSheetEntry>>;
 
+export function EmptyRecycleBin():Promise<void>;
+
 export function EngagementLetterDefaultOutput(arg1:string,arg2:string,arg3:string):Promise<string>;
 
 export function EnrollExistingUser(arg1:string,arg2:string):Promise<void>;
 
 export function ExitBabyFileCab():Promise<void>;
+
+export function FileInboxDocument(arg1:string,arg2:string,arg3:string):Promise<string>;
 
 export function GenerateEngagementLetter(arg1:main.EngagementLetterRequest,arg2:string):Promise<Array<string>>;
 
@@ -60,6 +80,8 @@ export function GetAuditTrail(arg1:string):Promise<Array<main.AuditEntry>>;
 
 export function GetAutoLockMinutes():Promise<number>;
 
+export function GetBackupSettings():Promise<main.BackupSettings>;
+
 export function GetClientCommunications():Promise<Array<main.ClientCommunication>>;
 
 export function GetClientProperties(arg1:string):Promise<main.ClientProperties>;
@@ -70,15 +92,21 @@ export function GetEngagementLetterLogo():Promise<main.EngagementLetterLogoInfo>
 
 export function GetFirmCalendar2026():Promise<Array<main.FirmCalendarAssignment>>;
 
+export function GetInboxFolder():Promise<string>;
+
 export function GetNotes(arg1:string):Promise<string>;
 
 export function GetNotesDocument(arg1:string):Promise<main.NotesDocument>;
+
+export function GetPDFData(arg1:string):Promise<string>;
 
 export function GetPreview(arg1:string):Promise<main.Preview>;
 
 export function GetTimeSheetEntries():Promise<Array<main.TimeSheetEntry>>;
 
 export function GetTree():Promise<Array<main.TreeNode>>;
+
+export function GetUpdateCheckEnabled():Promise<boolean>;
 
 export function GlobalFind(arg1:string):Promise<Array<main.GlobalSearchResult>>;
 
@@ -92,6 +120,12 @@ export function ListCompanies():Promise<Array<main.CompanyProfile>>;
 
 export function ListCompanyUsers():Promise<Array<main.UserProfile>>;
 
+export function ListDocumentVersions(arg1:string):Promise<Array<main.DocumentVersion>>;
+
+export function ListInbox():Promise<Array<main.InboxFile>>;
+
+export function ListRecycleBin():Promise<Array<main.RecycleItem>>;
+
 export function LogAppEvent(arg1:string,arg2:string):Promise<void>;
 
 export function Login(arg1:string,arg2:string):Promise<main.UserProfile>;
@@ -104,11 +138,17 @@ export function NodeType(arg1:string):Promise<string>;
 
 export function OpenDataFolder():Promise<void>;
 
+export function OpenDocumentVersion(arg1:string,arg2:string):Promise<void>;
+
 export function OpenFile(arg1:string):Promise<void>;
 
 export function OpenIRSCurrencyExchangeRatesPage():Promise<void>;
 
 export function OpenIRSPaymentPage():Promise<void>;
+
+export function OpenInboxFile(arg1:string):Promise<void>;
+
+export function OpenReleasePage(arg1:string):Promise<void>;
 
 export function ReassignClientInFirmCalendar2026(arg1:string,arg2:string,arg3:string):Promise<Array<main.FirmCalendarAssignment>>;
 
@@ -126,9 +166,17 @@ export function RenameSection(arg1:string,arg2:string):Promise<string>;
 
 export function RenameTaxYear(arg1:string,arg2:string):Promise<string>;
 
-export function RenderPDFPage(arg1:string,arg2:number):Promise<string>;
-
 export function RestoreClient(arg1:string):Promise<string>;
+
+export function RestoreDocumentVersion(arg1:string,arg2:string):Promise<void>;
+
+export function RestoreFromRecycleBin(arg1:string):Promise<string>;
+
+export function RestoreFullBackup(arg1:string):Promise<string>;
+
+export function RunScheduledBackup():Promise<main.BackupSettings>;
+
+export function SaveBackupSettings(arg1:string,arg2:string,arg3:number):Promise<main.BackupSettings>;
 
 export function SaveDocumentDescription(arg1:string,arg2:string):Promise<void>;
 
@@ -138,8 +186,6 @@ export function SaveNotesDocument(arg1:string,arg2:string,arg3:string):Promise<v
 
 export function SaveTimeSheetEntry(arg1:string,arg2:string,arg3:string,arg4:number):Promise<Array<main.TimeSheetEntry>>;
 
-export function SearchPDF(arg1:string,arg2:string):Promise<main.PDFSearchResponse>;
-
 export function SessionActive():Promise<boolean>;
 
 export function SetAutoLockMinutes(arg1:number):Promise<void>;
@@ -147,6 +193,8 @@ export function SetAutoLockMinutes(arg1:number):Promise<void>;
 export function SetDocumentEnteredDone(arg1:string,arg2:boolean):Promise<void>;
 
 export function SetFirmCalendarStatus2026(arg1:string,arg2:string,arg3:string):Promise<Array<main.FirmCalendarAssignment>>;
+
+export function SetUpdateCheckEnabled(arg1:boolean):Promise<void>;
 
 export function TouchActivity():Promise<boolean>;
 
