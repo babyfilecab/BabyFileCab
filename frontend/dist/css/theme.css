@@ -317,6 +317,14 @@ tr:first-child { background: var(--panel-2); font-weight: 600; }
 .time-sheet-entry-grid { grid-template-columns: 170px minmax(160px, 1fr) minmax(160px, 1fr) 110px auto; gap: 10px; }
 .time-sheet-entry-actions { flex-wrap: wrap; }
 @media (max-width: 1000px) { .time-sheet-entry-grid { grid-template-columns: 1fr 1fr; } }
+.time-sheet-timer { display: flex; align-items: center; gap: 10px; margin: 10px 0 4px; padding: 8px 10px; border: 1px dashed var(--line-strong); border-radius: 8px; background: var(--panel); }
+.time-sheet-timer.running { border-style: solid; border-color: var(--accent); background: var(--accent-soft); }
+.time-sheet-timer-status { flex: 1; font-size: 13px; color: var(--muted); }
+.time-sheet-timer.running .time-sheet-timer-status { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.time-sheet-table td button + button { margin-left: 6px; }
+.timer-chip { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; border: 1px solid var(--accent); border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; }
+.timer-chip.hidden { display: none; }
+:root[data-theme="dark"] .time-sheet-timer { background: var(--panel-2); }
 
 :root[data-theme="dark"] .modal input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]),
 :root[data-theme="dark"] .modal select,
@@ -441,6 +449,15 @@ body:not(.staff-user) .staff-only { display: none !important; }
 :root[data-theme="dark"] .invoice-list-table th { background: var(--panel); }
 .invoice-list-table td { padding: 7px 8px; border-bottom: 1px solid var(--line, #e2e8f0); }
 .invoice-list-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.encryption-check-summary { margin: 4px 0 8px; font-size: 14px; font-weight: 600; }
+.encryption-check-list { margin: 0; padding: 0 0 0 18px; font-size: 13px; font-family: ui-monospace, "Cascadia Mono", "DejaVu Sans Mono", monospace; color: var(--text-2); }
+.encryption-check-list li { padding: 2px 0; overflow-wrap: anywhere; }
+.wisp-modal { width: min(760px, 95vw); }
+.wisp-form { display: grid; gap: 12px; padding: 2px 2px 8px; }
+.wisp-form textarea { resize: vertical; font: inherit; }
+.retention-summary { margin: 4px 0 8px; font-size: 13px; color: var(--muted); }
+.retention-actions { white-space: nowrap; text-align: right; }
+.retention-actions button { padding: 4px 10px; font-size: 12.5px; margin-left: 6px; }
 .invoice-list-actions { white-space: nowrap; text-align: right; }
 .invoice-list-actions button { padding: 3px 8px; margin-left: 4px; font-size: 12px; }
 .invoice-paid { color: #16813c; }

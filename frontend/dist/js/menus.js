@@ -164,6 +164,9 @@ async function handleMenuAction(action) {
       case 'theme-dark':
         applyTheme('dark');
         break;
+      case 'theme-purple':
+        applyTheme('purple');
+        break;
       case 'tax-calculator':
         await backend().LogAppEvent('Federal Tax Calculator opened', 'Tools menu');
         showTaxCalculator();
@@ -189,6 +192,15 @@ async function handleMenuAction(action) {
         break;
       case 'invoice-list':
         await showInvoiceList();
+        break;
+      case 'retention':
+        await showRetention();
+        break;
+      case 'encryption-check':
+        await showEncryptionCheck();
+        break;
+      case 'wisp':
+        await showWISP();
         break;
       case 'currency-converter':
         await backend().LogAppEvent('Currency Converter opened', 'IRS yearly-average currency exchange rates');

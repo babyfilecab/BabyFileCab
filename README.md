@@ -55,6 +55,12 @@ so BabyFileCab encrypts everything it stores.
 - The app locks itself after 15, 30 or 45 minutes without activity, and
   when the computer sleeps or the screen locks.
 - A company-wide audit trail records sign-ins and changes.
+- New scans in the scan inbox folder are encrypted within seconds and the
+  unencrypted originals removed. Administrators can run an Encryption Check
+  to find and encrypt any files copied into the data folder by hand.
+- Only one copy of BabyFileCab can use the data folder at a time.
+- Settings › Security Plan (WISP) prepares the Written Information Security
+  Plan every paid preparer needs, filled in from BabyFileCab's own settings.
 
 See [SECURITY-STATUS.md](SECURITY-STATUS.md) for the full details and the
 known limits.
@@ -81,9 +87,13 @@ known limits.
   Invoices list shows what's unpaid or overdue and lets you mark payments.
 - **Time Sheet:** everyone, staff included, logs their own time per client
   and per day (type 1.5, 1:30 or 90m) and can fix their own entries until
-  they're billed. Look at a week, month or year with totals per client.
-  Administrators can see everyone's time.
-  Export to a spreadsheet; billed hours are marked with the invoice number.
+  they're billed, or start a timer and stop it when done. Look at a week,
+  month or year with totals per client. Administrators can see everyone's
+  time. Export to a spreadsheet; billed hours are marked with the invoice
+  number.
+- **Record Keeping:** lists client tax years older than the firm's period
+  (7 years after filing by default) so you can review them, put them on hold
+  or move them to the Recycle Bin. Nothing is deleted automatically.
 - **Federal Tax Calculator:** quick 2024, 2025 and 2026 estimates covering
   itemized or standard deductions, the extra amount for 65+ and blind, the
   2025–2028 senior, tips and overtime deductions, QBI, qualified dividends,
@@ -93,7 +103,7 @@ known limits.
   Treasury's December 31 rates for FBAR and Form 8938 balances.
 - **Multiple users:** add Staff and Administrator accounts for everyone in
   your firm. They all share the same client cabinet on that computer.
-- Light and dark themes, and keyboard shortcuts you can remap.
+- Light, dark and purple themes, and keyboard shortcuts you can remap.
 
 ## Installing
 
@@ -168,6 +178,8 @@ Press **F1** in the app for the full manual. The ones I use most:
 | `backup_auto.go` | Automatic backups and restore |
 | `clients.go`, `tree.go`, `documents.go`, `notes.go` | The document cabinet |
 | `recycle.go`, `versions.go`, `inbox.go` | Recycle Bin, previous versions, scan inbox |
+| `retention.go`, `encryption_check.go`, `wisp.go`, `instance_lock*.go` | Record keeping, encryption check, security plan, one-copy lock |
+| `scripts/make-purple-theme.py` | Builds `css/purple.css` from the light theme; run it after changing colours |
 | `preview.go` | Document previews |
 | `calendar*.go`, `timesheet*.go` | Firm Calendar and time sheet |
 | `invoice*.go`, `engagement_*.go`, `services.go` | Letters, letter wording, invoices and the invoice list |

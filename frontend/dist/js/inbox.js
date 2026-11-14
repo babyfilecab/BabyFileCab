@@ -6,7 +6,7 @@ let inboxTimer = null;
 function startInboxWatch() {
   stopInboxWatch();
   refreshInboxCount();
-  inboxTimer = setInterval(() => { if (!document.hidden) refreshInboxCount(); }, 30000);
+  inboxTimer = setInterval(() => { if (!document.hidden) refreshInboxCount(); }, 15000);
 }
 
 function stopInboxWatch() {
@@ -77,7 +77,7 @@ function fillInboxFolders() {
 async function showInbox() {
   const folder = await backend().GetInboxFolder();
   if (!folder) {
-    if (!confirm('Choose the folder your scanner or phone app saves to. New files there will show up in the Scan Inbox so you can file them into a client.')) return;
+    if (!confirm("Choose the folder your scanner or phone app saves to. New files there are moved into BabyFileCab's encrypted storage and show up in the Scan Inbox so you can file them into a client.")) return;
     if (!await chooseInboxFolder()) return;
   }
   const clients = treeData.filter(n => n.type === 'client').sort((a, b) => a.name.localeCompare(b.name));
@@ -85,7 +85,7 @@ async function showInbox() {
   clientSelect.replaceChildren(new Option('Choose a client…', ''), ...clients.map(c => new Option(`${c.name} (${c.clientId})`, c.path)));
   clientSelect.value = inboxClientForSelection()?.path || '';
   fillInboxFolders();
-  $('inboxFolderLabel').textContent = `Watching ${await backend().GetInboxFolder()}. Filing a scan encrypts it into the client and removes it from this folder.`;
+  $('inboxFolderLabel').textContent = `Watching ${await backend().GetInboxFolder()}. New scans are encrypted and removed from that folder within a few seconds while BabyFileCab is open. File each one into a client below.`;
   $('inboxBackdrop').classList.remove('hidden');
   await refreshInboxCount();
   renderInboxList();
@@ -110,7 +110,7 @@ function renderInboxList() {
     name.setAttribute('aria-label', `File name for ${file.name}`);
     name.dataset.inboxName = String(index);
     const meta = document.createElement('span');
-    meta.textContent = `${formatFileSize(file.size || 0)} · ${new Date(file.modified).toLocaleString()}`;
+    meta.textContent = `${formatFileSize(file.size || 0)} · ${new Date(file.modified).toLocaleString()}${file.encrypted ? '' : ' · not encrypted yet'}`;
     info.append(name, meta);
     const actions = document.createElement('div');
     actions.className = 'recycle-bin-actions';
@@ -124,7 +124,14 @@ function renderInboxList() {
     fileIt.className = 'primary';
     fileIt.textContent = 'File';
     fileIt.dataset.inboxFile = String(index);
-    actions.append(open, fileIt);
+    const discard = document.createElement('button');
+    discard.type = 'button';
+    discard.className = 'secondary';
+    discard.textContent = 'Discard';
+    discard.title = 'Move this scan to the Recycle Bin';
+    discard.dataset.inboxDiscard = String(index);
+    discard.disabled = !file.encrypted;
+    actions.append(open, discard, fileIt);
     li.append(info, actions);
     list.appendChild(li);
   });
@@ -162,5 +169,13 @@ function wireInbox() {
     if (open) { const f = inboxFiles[Number(open.dataset.inboxOpen)]; if (f) call(() => backend().OpenInboxFile(f.name)); return; }
     const fileIt = e.target.closest('[data-inbox-file]');
     if (fileIt) call(() => fileInboxItem(fileIt.dataset.inboxFile));
+    const discard = e.target.closest('[data-inbox-discard]');
+    if (discard) call(async () => {
+      const f = inboxFiles[Number(discard.dataset.inboxDiscard)];
+      if (!f || !confirm(`Move ${f.name} to the Recycle Bin? It can be restored for 30 days.`)) return;
+      await backend().DiscardInboxFile(f.name);
+      await refreshInboxCount();
+      toast(`${f.name} moved to the Recycle Bin.`);
+    });
   });
 }

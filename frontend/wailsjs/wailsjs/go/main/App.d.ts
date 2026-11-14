@@ -22,6 +22,8 @@ export function BackupClient(arg1:string):Promise<string>;
 
 export function ChangePassword(arg1:string,arg2:string,arg3:string):Promise<void>;
 
+export function CheckEncryption():Promise<main.EncryptionReport>;
+
 export function CheckForUpdate():Promise<main.UpdateInfo>;
 
 export function ChooseBackupFolder():Promise<string>;
@@ -60,7 +62,11 @@ export function DeleteTaxYear(arg1:string):Promise<void>;
 
 export function DeleteTimeSheetEntry(arg1:string):Promise<Array<main.TimeSheetEntry>>;
 
+export function DiscardInboxFile(arg1:string):Promise<void>;
+
 export function EmptyRecycleBin():Promise<void>;
+
+export function EncryptUnencryptedFiles():Promise<main.EncryptionReport>;
 
 export function EngagementLetterDefaultOutput(arg1:string,arg2:string,arg3:string):Promise<string>;
 
@@ -75,6 +81,8 @@ export function FileInboxDocument(arg1:string,arg2:string,arg3:string):Promise<s
 export function GenerateEngagementLetter(arg1:main.EngagementLetterRequest,arg2:string):Promise<Array<string>>;
 
 export function GenerateInvoice(arg1:main.InvoiceRequest,arg2:string):Promise<Array<string>>;
+
+export function GenerateWISP(arg1:main.WISPInput,arg2:string):Promise<string>;
 
 export function GetAppAuditTrail():Promise<Array<main.AppAuditEntry>>;
 
@@ -108,11 +116,15 @@ export function GetPDFData(arg1:string):Promise<string>;
 
 export function GetPreview(arg1:string):Promise<main.Preview>;
 
+export function GetRetentionSettings():Promise<main.RetentionSettings>;
+
 export function GetTimeSheetEntries():Promise<Array<main.TimeSheetEntry>>;
 
 export function GetTree():Promise<Array<main.TreeNode>>;
 
 export function GetUpdateCheckEnabled():Promise<boolean>;
+
+export function GetWISPInput():Promise<main.WISPInput>;
 
 export function GlobalFind(arg1:string):Promise<Array<main.GlobalSearchResult>>;
 
@@ -136,11 +148,15 @@ export function ListInvoices():Promise<Array<main.InvoiceRecord>>;
 
 export function ListRecycleBin():Promise<Array<main.RecycleItem>>;
 
+export function ListRetentionDue():Promise<Array<main.RetentionItem>>;
+
 export function LogAppEvent(arg1:string,arg2:string):Promise<void>;
 
 export function Login(arg1:string,arg2:string):Promise<main.UserProfile>;
 
 export function Logout():Promise<void>;
+
+export function MarkRetentionReminded():Promise<void>;
 
 export function MoveDocument(arg1:string,arg2:string):Promise<string>;
 
@@ -211,6 +227,10 @@ export function SetDocumentEnteredDone(arg1:string,arg2:boolean):Promise<void>;
 export function SetFirmCalendarStatus2026(arg1:string,arg2:string,arg3:string):Promise<Array<main.FirmCalendarAssignment>>;
 
 export function SetInvoicePaid(arg1:string,arg2:boolean,arg3:string):Promise<Array<main.InvoiceRecord>>;
+
+export function SetRetentionHold(arg1:string,arg2:string,arg3:boolean):Promise<main.RetentionSettings>;
+
+export function SetRetentionYears(arg1:number):Promise<main.RetentionSettings>;
 
 export function SetUpdateCheckEnabled(arg1:boolean):Promise<void>;
 

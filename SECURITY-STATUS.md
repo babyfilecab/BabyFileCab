@@ -13,7 +13,7 @@ Implemented in this source:
 
 Limits requiring attention before cloud sharing or production deployment:
 
-- Client names, document filenames, and the folder hierarchy remain visible on the local filesystem and inside automatic backup zips. Files waiting in the scan inbox folder are plaintext until they are filed. Company names and usernames are visible in the authentication index. Do not upload the local data directory directly to Appwrite.
+- Client names, document filenames, and the folder hierarchy remain visible on the local filesystem and inside automatic backup zips. New scans in the scan inbox folder are encrypted into the vault within a few seconds while someone is signed in, and the plaintext original is deleted; scans that arrive while BabyFileCab is closed or locked stay plaintext in that folder until the next sign-in. Company names and usernames are visible in the authentication index. Do not upload the local data directory directly to Appwrite.
 - The temporary files needed for Word/Excel/email previews and external viewers are plaintext while in use. They are deleted on lock/startup, but filesystem deletion cannot promise to erase old blocks; use full-disk encryption.
 - Backups are limited to 512 MB per client. A restored legacy ZIP remains plaintext at its original location. Store or remove it separately.
 - Linux has native login1 handling. Windows and macOS rely on window visibility/focus and wake-gap handling; native session events still need platform tests.

@@ -8,6 +8,7 @@ import (
 	_ "image/png"
 	"io/fs"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
@@ -21,7 +22,7 @@ import (
 )
 
 // appVersion must match "productVersion" in wails.json.
-const appVersion = "2.2.0"
+const appVersion = "2.3.0"
 
 const (
 	appTitle             = "BabyFileCab — Local Document Management"
@@ -66,6 +67,8 @@ type App struct {
 	lastUpdateInfo  UpdateInfo
 	auditMu         sync.Mutex
 	timesheetMu     sync.Mutex
+	retentionMu     sync.Mutex
+	inboxMu         sync.Mutex
 	tempMu          sync.Mutex
 	tempDirs        map[string]struct{}
 }
@@ -80,6 +83,15 @@ func main() {
 	assets, err := fs.Sub(embeddedAssets, "frontend/dist")
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// Take the lock before NewApp, which tidies the data folder and would
+	// disturb a copy that is already running.
+	if err := acquireInstanceLock(); errors.Is(err, errAlreadyOpen) {
+		runAlreadyOpen()
+		return
+	} else if err != nil {
+		log.Printf("instance lock: %v", err)
 	}
 
 	app, err := NewApp()
@@ -107,9 +119,60 @@ func main() {
 			Icon:        appIcon,
 			ProgramName: "BabyFileCab",
 		},
+		// Opening BabyFileCab again brings the open window to the front.
+		SingleInstanceLock: &options.SingleInstanceLock{
+			UniqueId:               singleInstanceID,
+			OnSecondInstanceLaunch: app.bringToFront,
+		},
 	})
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+const singleInstanceID = "com.babyfilecab.desktop"
+
+func (a *App) bringToFront(options.SecondInstanceData) {
+	if a.ctx == nil {
+		return
+	}
+	wailsruntime.WindowUnminimise(a.ctx)
+	wailsruntime.Show(a.ctx)
+}
+
+// runAlreadyOpen is used when another copy holds the lock but couldn't be
+// brought to the front (for example on Linux without a session bus). It
+// says so and quits without touching any data.
+func runAlreadyOpen() {
+	const message = "BabyFileCab is already open on this computer. Switch to the open window. Only one copy can use your files at a time."
+	page := "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>BabyFileCab</title></head>" +
+		"<body style=\"font:15px system-ui,sans-serif;margin:32px;color:#1f2937\"><h2 style=\"margin:0 0 10px\">BabyFileCab is already open</h2><p>" +
+		message + "</p></body></html>"
+	err := wails.Run(&options.App{
+		Title:     "BabyFileCab",
+		Width:     520,
+		Height:    220,
+		Frameless: false,
+		AssetServer: &assetserver.Options{
+			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+				_, _ = w.Write([]byte(page))
+			}),
+		},
+		Linux: &linux.Options{Icon: appIcon, ProgramName: "BabyFileCab"},
+		SingleInstanceLock: &options.SingleInstanceLock{
+			UniqueId:               singleInstanceID,
+			OnSecondInstanceLaunch: func(options.SecondInstanceData) {},
+		},
+		OnDomReady: func(ctx context.Context) {
+			_, _ = wailsruntime.MessageDialog(ctx, wailsruntime.MessageDialogOptions{
+				Type: wailsruntime.InfoDialog, Title: "BabyFileCab is already open", Message: message,
+			})
+			wailsruntime.Quit(ctx)
+		},
+	})
+	if err != nil {
+		log.Print(err)
 	}
 }
 
@@ -191,6 +254,7 @@ func (a *App) SetAutoLockMinutes(minutes int) error {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.startSessionMonitor(ctx)
+	go a.watchInbox(ctx.Done())
 	go func() {
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()

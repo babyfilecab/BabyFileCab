@@ -13,13 +13,117 @@ import (
 )
 
 // Scan inbox: point BabyFileCab at the folder your scanner or phone app saves
-// to. New files show up in an Inbox list, and filing one moves it into the
-// encrypted vault and removes the plaintext original from the inbox folder.
+// to. While someone is signed in, each new scan is encrypted into a holding
+// folder inside the vault within a few seconds and the unencrypted original
+// is removed, so scans don't sit around in plain form waiting to be filed.
+// Filing one then moves it from the holding folder into the client.
+
+// inboxHoldDir is the encrypted holding folder inside the company vault. The
+// leading dot keeps it out of the client list.
+const inboxHoldDir = ".Inbox"
+
+// vaultFileOverhead is what encryption adds to a file: the marker, the
+// 12-byte nonce and the 16-byte tag.
+const vaultFileOverhead = len(vaultFileMagic) + 12 + 16
 
 type InboxFile struct {
 	Name     string `json:"name"`
 	Size     int64  `json:"size"`
 	Modified string `json:"modified"`
+	// Encrypted is false only when a scan couldn't be taken in yet (for
+	// example it is still open in another program).
+	Encrypted bool `json:"encrypted"`
+}
+
+func (a *App) inboxHoldPath() string { return filepath.Join(a.dataRoot, inboxHoldDir) }
+
+// freeInboxName picks a name in the holding folder that isn't taken.
+func freeInboxName(dir, name string) string {
+	ext := filepath.Ext(name)
+	stem := strings.TrimSuffix(name, ext)
+	candidate := name
+	for i := 2; ; i++ {
+		if _, err := os.Lstat(filepath.Join(dir, candidate)); errors.Is(err, os.ErrNotExist) {
+			return candidate
+		}
+		candidate = fmt.Sprintf("%s (%d)%s", stem, i, ext)
+	}
+}
+
+// intakeInbox encrypts every finished file in the watched folder into the
+// holding folder, checks the encrypted copy, and only then deletes the
+// original. Anything that fails stays where it is and is tried again later.
+func (a *App) intakeInbox() (int, error) {
+	if a.requireSignedIn() != nil {
+		return 0, nil
+	}
+	folder := a.inboxFolder()
+	if folder == "" {
+		return 0, nil
+	}
+	a.inboxMu.Lock()
+	defer a.inboxMu.Unlock()
+	entries, err := os.ReadDir(folder)
+	if err != nil {
+		return 0, err
+	}
+	hold := a.inboxHoldPath()
+	if err := os.MkdirAll(hold, 0700); err != nil {
+		return 0, err
+	}
+	taken := 0
+	for _, e := range entries {
+		info, err := e.Info()
+		if err != nil || !inboxFileUsable(e.Name(), info) {
+			continue
+		}
+		src := filepath.Join(folder, e.Name())
+		plain, err := os.ReadFile(src)
+		if err != nil {
+			continue
+		}
+		dst := filepath.Join(hold, freeInboxName(hold, e.Name()))
+		err = a.secureWriteFile(dst, plain)
+		if err == nil {
+			var back []byte
+			back, err = a.secureReadFile(dst)
+			if err == nil && string(back) != string(plain) {
+				err = errors.New("encrypted copy did not match")
+			}
+			zeroBytes(back)
+		}
+		zeroBytes(plain)
+		if err != nil {
+			_ = os.Remove(dst)
+			continue
+		}
+		_ = os.Chtimes(dst, info.ModTime(), info.ModTime())
+		if err := os.Remove(src); err != nil {
+			// Keep one copy only: if the original can't be removed (still
+			// open elsewhere), drop the encrypted copy and try again later.
+			_ = os.Remove(dst)
+			continue
+		}
+		taken++
+	}
+	if taken > 0 {
+		_ = a.appendAppAuditCurrent("", "", "Scans encrypted from inbox folder", fmt.Sprintf("%d file(s)", taken))
+	}
+	return taken, nil
+}
+
+// watchInbox takes in new scans every few seconds while someone is signed in.
+func (a *App) watchInbox(done <-chan struct{}) {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-done:
+			return
+		case <-ticker.C:
+			_, _ = a.intakeInbox()
+		}
+	}
 }
 
 func (a *App) inboxFolder() string {
@@ -98,11 +202,29 @@ func (a *App) ListInbox() ([]InboxFile, error) {
 	if folder == "" {
 		return []InboxFile{}, nil
 	}
+	_, intakeErr := a.intakeInbox()
+	out := []InboxFile{}
+	if entries, err := os.ReadDir(a.inboxHoldPath()); err == nil {
+		for _, e := range entries {
+			info, err := e.Info()
+			if err != nil || !info.Mode().IsRegular() || strings.HasPrefix(e.Name(), ".") {
+				continue
+			}
+			size := info.Size() - int64(vaultFileOverhead)
+			if size < 0 {
+				size = 0
+			}
+			out = append(out, InboxFile{Name: e.Name(), Size: size, Modified: info.ModTime().Format(time.RFC3339), Encrypted: true})
+		}
+	}
+	// Scans that couldn't be taken in yet still show, so nothing goes missing.
 	entries, err := os.ReadDir(folder)
 	if err != nil {
+		if intakeErr != nil {
+			return nil, fmt.Errorf("could not read the scan inbox folder: %w", intakeErr)
+		}
 		return nil, fmt.Errorf("could not read the scan inbox folder: %w", err)
 	}
-	out := []InboxFile{}
 	for _, e := range entries {
 		info, err := e.Info()
 		if err != nil || !inboxFileUsable(e.Name(), info) {
@@ -110,24 +232,30 @@ func (a *App) ListInbox() ([]InboxFile, error) {
 		}
 		out = append(out, InboxFile{Name: e.Name(), Size: info.Size(), Modified: info.ModTime().Format(time.RFC3339)})
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i].Modified > out[j].Modified })
+	sort.SliceStable(out, func(i, j int) bool { return out[i].Modified > out[j].Modified })
 	return out, nil
 }
 
-func (a *App) inboxFilePath(name string) (string, error) {
+// inboxFilePath finds a scan in the encrypted holding folder, or failing
+// that in the watched folder. encrypted says which.
+func (a *App) inboxFilePath(name string) (path string, encrypted bool, err error) {
+	if name == "" || name != filepath.Base(name) || name == "." || name == ".." || strings.HasPrefix(name, ".") {
+		return "", false, errors.New("invalid inbox file")
+	}
+	held := filepath.Join(a.inboxHoldPath(), name)
+	if info, err := os.Lstat(held); err == nil && info.Mode().IsRegular() {
+		return held, true, nil
+	}
 	folder := a.inboxFolder()
 	if folder == "" {
-		return "", errors.New("choose a scan inbox folder first (Settings › Scan Inbox Folder)")
-	}
-	if name == "" || name != filepath.Base(name) || name == "." || name == ".." {
-		return "", errors.New("invalid inbox file")
+		return "", false, errors.New("choose a scan inbox folder first (Settings › Scan Inbox Folder)")
 	}
 	p := filepath.Join(folder, name)
 	info, err := os.Lstat(p)
 	if err != nil || !info.Mode().IsRegular() {
-		return "", errors.New("that file is no longer in the inbox")
+		return "", false, errors.New("that file is no longer in the inbox")
 	}
-	return p, nil
+	return p, false, nil
 }
 
 // OpenInboxFile shows a scan in its normal desktop app before filing it.
@@ -135,21 +263,47 @@ func (a *App) OpenInboxFile(name string) error {
 	if err := a.requireSignedIn(); err != nil {
 		return err
 	}
-	p, err := a.inboxFilePath(name)
+	p, encrypted, err := a.inboxFilePath(name)
 	if err != nil {
 		return err
 	}
-	return openPath(p)
+	if !encrypted {
+		return openPath(p)
+	}
+	tmp, _, err := a.decryptedTemp(p)
+	if err != nil {
+		return err
+	}
+	return openPath(tmp)
+}
+
+// DiscardInboxFile moves an unwanted scan to the Recycle Bin.
+func (a *App) DiscardInboxFile(name string) error {
+	if err := a.requireSignedIn(); err != nil {
+		return err
+	}
+	a.inboxMu.Lock()
+	defer a.inboxMu.Unlock()
+	p, encrypted, err := a.inboxFilePath(name)
+	if err != nil {
+		return err
+	}
+	if !encrypted {
+		return errors.New("this scan hasn't been encrypted yet; try again in a few seconds")
+	}
+	return a.moveToRecycleBin(p, "file", "Scan Inbox")
 }
 
 // FileInboxDocument encrypts an inbox file into the chosen folder and then
-// removes the original from the inbox. Returns the new document path.
+// removes it from the inbox. Returns the new document path.
 func (a *App) FileInboxDocument(name, targetPath, newName string) (string, error) {
 	targetPath, err := a.uploadTarget(targetPath)
 	if err != nil {
 		return "", err
 	}
-	src, err := a.inboxFilePath(name)
+	a.inboxMu.Lock()
+	defer a.inboxMu.Unlock()
+	src, encrypted, err := a.inboxFilePath(name)
 	if err != nil {
 		return "", err
 	}
@@ -168,19 +322,24 @@ func (a *App) FileInboxDocument(name, targetPath, newName string) (string, error
 	if err != nil {
 		return "", err
 	}
-	// Only remove the original once the encrypted copy reads back correctly.
-	original, err := os.ReadFile(src)
+	// Only remove the inbox copy once the filed copy reads back correctly.
+	var original []byte
+	if encrypted {
+		original, err = a.secureReadFile(src)
+	} else {
+		original, err = os.ReadFile(src)
+	}
 	if err != nil {
 		return "", err
 	}
 	stored, err := a.secureReadFile(dst)
 	if err != nil || string(stored) != string(original) {
-		return "", errors.New("the filed copy could not be verified; the original was left in the inbox")
+		return "", errors.New("the filed copy could not be verified; the scan was left in the inbox")
 	}
 	zeroBytes(original)
 	zeroBytes(stored)
 	if err := os.Remove(src); err != nil {
-		return dst, fmt.Errorf("filed, but the original could not be removed from the inbox: %w", err)
+		return dst, fmt.Errorf("filed, but the scan could not be removed from the inbox: %w", err)
 	}
 	var updated []string
 	if replaced {

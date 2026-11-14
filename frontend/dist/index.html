@@ -6,6 +6,7 @@
   <title>BabyFileCab</title>
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" href="css/purple.css" />
 </head>
 <body>
   <section id="authScreen" class="auth-screen">
@@ -88,6 +89,8 @@
           <button type="button" data-menu-action="change-password">Change Password…</button>
           <button type="button" data-menu-action="inbox-folder">Scan Inbox Folder…</button>
           <button type="button" data-menu-action="auto-backup">Automatic Backups…</button>
+          <button type="button" class="admin-only" data-menu-action="encryption-check">Encryption Check…</button>
+          <button type="button" class="admin-only" data-menu-action="wisp">Security Plan (WISP)…</button>
           <button id="updateCheckMenuItem" type="button" role="menuitemcheckbox" data-menu-action="toggle-update-check">✓ Check for Updates</button>
           <div class="menu-separator"></div>
           <button type="button" data-menu-action="manage-users">Manage Users… <span class="menu-shortcut">M</span></button>
@@ -100,6 +103,7 @@
           <div class="menu-separator"></div>
           <button id="lightThemeMenuItem" type="button" data-menu-action="theme-light">✓ Light Theme</button>
           <button id="darkThemeMenuItem" type="button" data-menu-action="theme-dark">Dark Theme</button>
+          <button id="purpleThemeMenuItem" type="button" data-menu-action="theme-purple">Purple Theme</button>
         </div>
       </div>
       <div class="menu-root">
@@ -113,6 +117,7 @@
           <button type="button" data-menu-action="invoice-list">Invoices…</button>
           <button type="button" data-menu-action="currency-converter">Currency Converter (IRS)…</button>
           <button type="button" data-menu-action="app-audit-trail">Audit Trail…</button>
+          <button type="button" data-menu-action="retention">Record Keeping…</button>
         </div>
       </div>
       <div class="menu-root">
@@ -137,6 +142,12 @@
       <button id="updateLater" class="secondary" type="button">Later</button>
     </div>
 
+    <div id="retentionBanner" class="update-banner hidden" role="status">
+      <span id="retentionBannerText"></span>
+      <button id="retentionReview" class="primary" type="button">Review</button>
+      <button id="retentionLater" class="secondary" type="button">Remind Me Next Month</button>
+    </div>
+
     <header class="app-header">
       <div class="brand">
         <img class="logo" src="logo.png" alt="BabyFileCab" />
@@ -154,6 +165,7 @@
         </div>
         <button class="inbox-button hidden" id="inboxBtn" type="button" title="New scans waiting to be filed" aria-label="Scan inbox"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 11.5 5 4.5h10l2 7v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M3 11.5h4l1 2h4l1-2h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span id="inboxCount">0</span></button>
         <button class="attention-button hidden" id="needsAttentionBtn" type="button" title="Calendar items that need attention" aria-label="Calendar items that need attention"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 2.5a5 5 0 0 0-5 5v2.7l-1.3 2.6a.8.8 0 0 0 .7 1.2h11.2a.8.8 0 0 0 .7-1.2L15 10.2V7.5a5 5 0 0 0-5-5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 16a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="needsAttentionCount">0</span></button>
+        <button class="timer-chip hidden" id="timerChip" type="button" title="Timer running. Click to open the Time Sheet."><span aria-hidden="true">⏱</span> <span id="timerChipText">0:00</span></button>
         <button class="calendar-icon-button" id="openFirmCalendarBtn" type="button" title="Open Firm Calendar" aria-label="Open Firm Calendar"><img src="calendar-icon.png" width="32" height="32" alt="" /></button>
       </div>
     </header>
@@ -854,6 +866,31 @@
             <kbd>Refresh</kbd><span>Reload the latest activity from the local company workspace.</span>
           </div>
           <p class="manual-note">The company-wide audit trail records who performed important BabyFileCab actions, when they occurred, the affected client when available, and the action details. Existing per-client history is imported into the company-wide trail the first time it is created.</p>
+        </section>
+        <section class="manual-section">
+          <h3>Time Sheet timer</h3>
+          <div class="shortcut-grid">
+            <kbd>Start</kbd><span>Choose the client, then click <strong>Start Timer</strong>. A clock shows at the top of the window while it runs, even with the Time Sheet closed or BabyFileCab restarted.</span>
+            <kbd>Stop</kbd><span>Click <strong>Stop Timer</strong> (or the clock, then Stop). The date, client and time worked are filled in; check them and click Add Time.</span>
+            <kbd>Repeat</kbd><span>Click <strong>Repeat</strong> on any of your entries to fill in the same client, work and hours for another day.</span>
+          </div>
+          <h3>Record Keeping</h3>
+          <div class="shortcut-grid">
+            <kbd>Tools</kbd><span>Open <strong>Record Keeping…</strong> to see client tax years older than the firm's period (7 years after filing unless an administrator changes it).</span>
+            <kbd>Keep</kbd><span>Administrators can put a tax year on hold, for example during an audit, so it stays off the list.</span>
+            <kbd>Delete</kbd><span><strong>Move to Recycle Bin</strong> keeps the tax year for 30 days before it's gone. Nothing is ever deleted automatically.</span>
+          </div>
+          <h3>Security</h3>
+          <div class="shortcut-grid">
+            <kbd>Scans</kbd><span>New scans in the scan inbox folder are encrypted into BabyFileCab within a few seconds while it's open, and the unencrypted originals are removed.</span>
+            <kbd>Check</kbd><span>Administrators: <strong>Settings › Encryption Check…</strong> finds files copied into the data folder by hand and encrypts them.</span>
+            <kbd>Plan</kbd><span>Administrators: <strong>Settings › Security Plan (WISP)…</strong> prepares the firm's Written Information Security Plan from BabyFileCab's settings, as a PDF or Word file.</span>
+            <kbd>One copy</kbd><span>Only one copy of BabyFileCab can be open at a time. Opening it again brings the open window to the front.</span>
+          </div>
+          <h3>Themes</h3>
+          <div class="shortcut-grid">
+            <kbd>Settings</kbd><span>Choose <strong>Light</strong>, <strong>Dark</strong> or <strong>Purple Theme</strong>. The choice is remembered on this computer.</span>
+          </div>
         </section>
 
         <section class="manual-section">
@@ -1696,6 +1733,12 @@
         <div class="time-sheet-entry-actions"><button id="timeSheetAdd" class="primary time-sheet-add" type="button">Add Time</button><button id="timeSheetCancelEdit" class="secondary hidden" type="button">Cancel Edit</button></div>
       </div>
       <div id="timeSheetDateStatus" class="time-sheet-date-status"></div>
+      <div class="time-sheet-timer" id="timeSheetTimerBar">
+        <button id="timeSheetTimerStart" class="secondary" type="button">▶ Start Timer</button>
+        <button id="timeSheetTimerStop" class="primary hidden" type="button">■ Stop Timer</button>
+        <span id="timeSheetTimerStatus" class="time-sheet-timer-status">Choose the client and click Start Timer when you begin. Stop it when you're done and the time is filled in for you.</span>
+        <button id="timeSheetTimerDiscard" class="secondary hidden" type="button">Discard</button>
+      </div>
       <div class="time-sheet-view-bar">
         <label>Show
           <select id="timeSheetPeriod">
@@ -1922,6 +1965,89 @@
     </div>
   </div>
 
+  <div id="retentionBackdrop" class="modal-backdrop hidden">
+    <div class="modal invoice-list-modal" role="dialog" aria-modal="true" aria-labelledby="retentionTitle">
+      <div class="needs-attention-head">
+        <div>
+          <h2 id="retentionTitle">Record Keeping</h2>
+          <p>The IRS asks preparers to keep a copy of each return, or a list of the returns, for at least 3 years after filing. Many firms keep 7. Tax years past your period are listed here so you can decide what to do with them. Nothing is deleted automatically.</p>
+        </div>
+        <button id="retentionCloseTop" class="secondary" type="button">Close</button>
+      </div>
+      <div class="invoice-list-filters">
+        <label>Keep tax years for
+          <select id="retentionYears" aria-label="Years to keep after filing">
+            <option value="3">3 years</option><option value="4">4 years</option><option value="5">5 years</option><option value="6">6 years</option>
+            <option value="7">7 years</option><option value="8">8 years</option><option value="9">9 years</option><option value="10">10 years</option>
+          </select>
+          after filing</label>
+        <select id="retentionShow" aria-label="Show">
+          <option value="due">Ready to review</option>
+          <option value="held">On hold</option>
+          <option value="all">All</option>
+        </select>
+        <input id="retentionSearch" type="search" placeholder="Client name" aria-label="Search clients" />
+      </div>
+      <p id="retentionSummary" class="retention-summary"></p>
+      <div class="invoice-list-scroll">
+        <table class="invoice-list-table">
+          <thead><tr><th>Client</th><th>Tax year</th><th>Past the period since</th><th>Status</th><th></th></tr></thead>
+          <tbody id="retentionBody"></tbody>
+        </table>
+        <p id="retentionEmpty" class="recycle-bin-empty hidden">Nothing to review.</p>
+      </div>
+      <div class="modal-actions">
+        <button id="retentionClose" class="primary" type="button">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="encryptionCheckBackdrop" class="modal-backdrop hidden">
+    <div class="modal invoice-list-modal" role="dialog" aria-modal="true" aria-labelledby="encryptionCheckTitle">
+      <div class="needs-attention-head">
+        <div>
+          <h2 id="encryptionCheckTitle">Encryption Check</h2>
+          <p>Everything BabyFileCab saves is encrypted. Files copied straight into the data folder with your file manager are not, and BabyFileCab can't open them until they are. This finds those files and encrypts them where they are.</p>
+        </div>
+        <button id="encryptionCheckCloseTop" class="secondary" type="button">Close</button>
+      </div>
+      <p id="encryptionCheckSummary" class="encryption-check-summary"></p>
+      <div class="invoice-list-scroll">
+        <ul id="encryptionCheckList" class="encryption-check-list"></ul>
+      </div>
+      <div class="modal-actions">
+        <button id="encryptionCheckRun" class="secondary" type="button" style="margin-right:auto">Check Again</button>
+        <button id="encryptionCheckEncrypt" class="primary" type="button">Encrypt Them</button>
+        <button id="encryptionCheckClose" class="secondary" type="button">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="wispBackdrop" class="modal-backdrop hidden">
+    <div class="modal invoice-list-modal wisp-modal" role="dialog" aria-modal="true" aria-labelledby="wispTitle">
+      <div class="needs-attention-head">
+        <div>
+          <h2 id="wispTitle">Written Information Security Plan</h2>
+          <p>Every paid tax preparer needs a written plan for protecting client data (FTC Safeguards Rule, IRS Publication 5708). BabyFileCab fills in your users, encryption, auto sign-out, backups and record keeping from its own settings. Add what it can't know below; anything left empty is a blank line to fill in by hand.</p>
+        </div>
+        <button id="wispCloseTop" class="secondary" type="button">Close</button>
+      </div>
+      <div class="invoice-list-scroll wisp-form">
+        <label class="form-field"><span>Data Security Coordinator</span><select id="wispCoordinator" class="modal-input compact"></select></label>
+        <label class="form-field"><span>Computers and devices used for client work</span><textarea id="wispDevices" class="modal-input" rows="2" maxlength="2000" placeholder="For example: office desktop (Windows 11), owner's laptop, office scanner"></textarea></label>
+        <label class="form-field"><span>Other software and services that hold client information</span><textarea id="wispServices" class="modal-input" rows="2" maxlength="2000" placeholder="For example: tax software, email, e-signature, client portal, cloud storage, payroll"></textarea></label>
+        <label class="form-field"><span>How multi-factor sign-in is used</span><textarea id="wispMFA" class="modal-input" rows="2" maxlength="2000" placeholder="For example: authenticator app for email, tax software and the client portal; Windows Hello on office computers"></textarea></label>
+        <label class="form-field"><span>Other notes (optional)</span><textarea id="wispNotes" class="modal-input" rows="2" maxlength="2000"></textarea></label>
+        <p id="wispLastMade" class="retention-summary"></p>
+      </div>
+      <div class="modal-actions">
+        <button id="wispClose" class="secondary" type="button" style="margin-right:auto">Cancel</button>
+        <button id="wispDocx" class="secondary" type="button">Make Word File…</button>
+        <button id="wispPdf" class="primary" type="button">Make PDF…</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/shortcuts.js"></script>
   <script src="js/state.js"></script>
   <script src="js/tax-data.js"></script>
@@ -1943,6 +2069,9 @@
   <script src="js/recycle-bin.js"></script>
   <script src="js/inbox.js"></script>
   <script src="js/backups.js"></script>
+  <script src="js/retention.js"></script>
+  <script src="js/encryption-check.js"></script>
+  <script src="js/wisp.js"></script>
   <script src="js/updates.js"></script>
   <script src="js/menus.js"></script>
   <script src="js/dialogs.js"></script>

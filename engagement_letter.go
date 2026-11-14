@@ -691,6 +691,18 @@ func writeSimplePDF(path string, pageStreams []string, author, title, logoPath s
 }
 
 func writeEngagementLetterDOCX(path string, data engagementLetterData) error {
+	var logoBytes []byte
+	if data.LogoPath != "" && data.LogoWidth > 0 && data.LogoHeight > 0 {
+		logoBytes, _ = os.ReadFile(data.LogoPath)
+	}
+	document := engagementDOCXDocument(data, len(logoBytes) > 0)
+	return writeDOCXPackage(path, "Engagement Letter - "+data.ClientName, data.CompanyName, document, logoBytes)
+}
+
+// writeDOCXPackage writes a minimal Word file around a finished
+// word/document.xml. logoBytes, when given, is stored as the JPEG that the
+// document refers to as rId2.
+func writeDOCXPackage(path, title, author, document string, logoBytes []byte) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return err
@@ -714,11 +726,6 @@ func writeEngagementLetterDOCX(path string, data engagementLetterData) error {
 		}
 		_, err = io.WriteString(w, body)
 		return err
-	}
-
-	var logoBytes []byte
-	if data.LogoPath != "" && data.LogoWidth > 0 && data.LogoHeight > 0 {
-		logoBytes, _ = os.ReadFile(data.LogoPath)
 	}
 	hasLogo := len(logoBytes) > 0
 
@@ -751,9 +758,8 @@ func writeEngagementLetterDOCX(path string, data engagementLetterData) error {
 		`<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">` +
 		`<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="20"/></w:rPr></w:style>` +
 		`</w:styles>`
-	core := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>%s</dc:title><dc:creator>%s</dc:creator><cp:lastModifiedBy>BabyFileCab</cp:lastModifiedBy><dcterms:created xsi:type="dcterms:W3CDTF">%s</dcterms:created></cp:coreProperties>`, xmlText("Engagement Letter - "+data.ClientName), xmlText(data.CompanyName), time.Now().UTC().Format(time.RFC3339))
+	core := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>%s</dc:title><dc:creator>%s</dc:creator><cp:lastModifiedBy>BabyFileCab</cp:lastModifiedBy><dcterms:created xsi:type="dcterms:W3CDTF">%s</dcterms:created></cp:coreProperties>`, xmlText(title), xmlText(author), time.Now().UTC().Format(time.RFC3339))
 	app := `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>BabyFileCab</Application></Properties>`
-	document := engagementDOCXDocument(data, hasLogo)
 
 	for _, item := range []struct{ name, body string }{
 		{"[Content_Types].xml", contentTypes},

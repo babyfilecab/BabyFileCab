@@ -81,7 +81,10 @@ async function enterApplication(user) {
   refreshNeedsAttention({ atSignIn: true }).catch(() => {});
   startInboxWatch();
   startBackupSchedule();
+  updateTimerUI();
   checkForUpdate();
+  checkRetentionReminder();
+  checkEncryptionAtSignIn();
 }
 
 async function signOut() {
@@ -91,6 +94,7 @@ async function signOut() {
   stopInboxWatch();
   stopBackupSchedule();
   $('updateBanner')?.classList.add('hidden');
+  $('retentionBanner')?.classList.add('hidden');
   hideCalendarScheduleClient();
   hideCalendarPreparerReassign();
   hideShortcutMapper();
@@ -101,6 +105,7 @@ async function signOut() {
     return;
   }
   currentUser = null;
+  updateTimerUI();
   treeData = [];
   selectedNode = null;
   selectedElement = null;

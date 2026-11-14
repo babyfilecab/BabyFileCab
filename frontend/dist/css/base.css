@@ -1997,7 +1997,10 @@ select.modal-input.compact { background: white; }
 .firm-calendar-heading, .firm-calendar-controls, .firm-calendar-footer { flex-shrink:0; }
 .firm-calendar-week-panel { display:flex; flex-direction:column; }
 .firm-calendar-week-label { flex-shrink:0; }
-.firm-calendar-grid { flex:1 0 auto; min-width:1190px; grid-template-columns:repeat(7, minmax(160px, 1fr)); }
+/* All seven days share the width so Sunday is never pushed out of view. */
+.firm-calendar-grid { flex:1 0 auto; min-width:0; grid-template-columns:repeat(7, minmax(0, 1fr)); }
+.firm-calendar-layout { grid-template-columns:minmax(0, 1fr) clamp(240px, 22vw, 340px); }
+@media (max-width: 1050px) { .firm-calendar-layout { grid-template-columns:1fr; } }
 .firm-calendar-client-link { padding:12px 10px; font-size:13px; line-height:1.45; align-content:flex-start; }
 .firm-calendar-client-name { flex:0 0 100%; width:100%; overflow:visible; text-overflow:clip; white-space:normal; overflow-wrap:anywhere; }
 .firm-calendar-client-chip { min-height:76px; }

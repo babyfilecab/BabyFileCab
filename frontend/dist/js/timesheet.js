@@ -37,10 +37,10 @@ function renderTimeSheetCalendar() {
       button.setAttribute('aria-selected','true');
       // Use explicit inline styling as well as the CSS class so the selected
       // day remains unmistakably highlighted in Wails/WebKit on every theme.
-      button.style.background = '#0878f9';
+      button.style.background = 'var(--day-selected, #0878f9)';
       button.style.color = '#ffffff';
-      button.style.borderColor = '#005fca';
-      button.style.outline = '3px solid rgba(8,120,249,.28)';
+      button.style.borderColor = 'var(--day-selected-border, #005fca)';
+      button.style.outline = '3px solid var(--day-selected-ring, rgba(8,120,249,.28))';
       button.style.outlineOffset = '1px';
     } else {
       button.setAttribute('aria-selected','false');
@@ -258,6 +258,10 @@ function renderTimeSheet() {
     const billed=document.createElement('td'); billed.textContent=entry.invoiceNumber || '—'; billed.className=entry.invoiceNumber ? 'time-sheet-billed' : 'time-sheet-unbilled';
     const actions=document.createElement('td');
     // Only your own unbilled hours can be changed.
+    if (String(entry.username || '').toLowerCase() === me) {
+      const again=document.createElement('button'); again.type='button'; again.className='secondary time-sheet-repeat'; again.textContent='Repeat'; again.title='Log the same work again'; again.dataset.timeEntryRepeatId=entry.id;
+      actions.append(again);
+    }
     if (String(entry.username || '').toLowerCase() === me && !entry.invoiceNumber) {
       const edit=document.createElement('button'); edit.type='button'; edit.className='secondary time-sheet-edit'; edit.textContent='Edit'; edit.dataset.timeEntryEditId=entry.id;
       const del=document.createElement('button'); del.type='button'; del.className='secondary time-sheet-delete'; del.textContent='Delete'; del.dataset.timeEntryId=entry.id;
@@ -292,6 +296,7 @@ async function showTimeSheet() {
   await loadTimeSheetEntries();
   updateTimeSheetDateStatus();
   renderTimeSheet();
+  updateTimerUI();
   $('timeSheetBackdrop').classList.remove('hidden');
   setTimeout(()=>$('timeSheetDate')?.focus(),20);
 }
@@ -334,4 +339,90 @@ async function deleteTimeSheetEntry(id) {
     renderTimeSheet(); toast('Time entry deleted.');
   }
   catch(error) { showError(error); }
+}
+
+// Timer ----------------------------------------------------------------------
+// One running timer per person, kept in this computer's storage so it keeps
+// going if the Time Sheet or the app is closed.
+let timerTick = null;
+
+function timerKey() {
+  return currentUser ? `babyfilecab-timer:${currentUser.companyId || currentUser.companyName || ''}:${String(currentUser.username || '').toLowerCase()}` : '';
+}
+function runningTimer() {
+  const key = timerKey();
+  if (!key) return null;
+  try { const t = JSON.parse(localStorage.getItem(key) || 'null'); return t && Number.isFinite(t.start) ? t : null; } catch { return null; }
+}
+// Whole minutes as h:mm, at least one minute.
+function timerElapsedText(ms) {
+  const minutes = Math.max(1, Math.round(ms / 60000));
+  return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`;
+}
+function timerClockText(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(total / 3600), m = Math.floor(total / 60) % 60, sec = total % 60;
+  return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+function startTimeSheetTimer() {
+  const select = $('timeSheetClient');
+  if (!select.value) { toast('Choose a client first.', true); return; }
+  if (runningTimer()) { toast('A timer is already running.', true); return; }
+  const client = select.options[select.selectedIndex]?.textContent || '';
+  localStorage.setItem(timerKey(), JSON.stringify({ start: Date.now(), clientPath: select.value, clientName: client, work: String($('timeSheetWork').value || '').trim() }));
+  updateTimerUI();
+  toast(`Timer started for ${client}.`);
+}
+function stopTimeSheetTimer() {
+  const t = runningTimer();
+  if (!t) return;
+  const elapsed = Date.now() - t.start;
+  localStorage.removeItem(timerKey());
+  if (timeSheetEditingId) cancelTimeSheetEdit(false);
+  const day = timeSheetISODate(new Date(t.start));
+  $('timeSheetDate').value = day; timeSheetPendingDate = day; timeSheetSelectedDate = day;
+  populateTimeSheetClients();
+  if ([...$('timeSheetClient').options].some(o => o.value === t.clientPath)) $('timeSheetClient').value = t.clientPath;
+  if (!String($('timeSheetWork').value || '').trim() && t.work) $('timeSheetWork').value = t.work;
+  const hours = elapsed > 24 * 3600000 ? '24:00' : timerElapsedText(elapsed);
+  $('timeSheetHours').value = hours;
+  updateTimeSheetDateStatus(); renderTimeSheet(); updateTimerUI();
+  toast(`Timer stopped at ${hours}. Check the details and click Add Time.`);
+  ($('timeSheetWork').value ? $('timeSheetAdd') : $('timeSheetWork')).focus();
+}
+function discardTimeSheetTimer() {
+  if (!runningTimer() || !confirm('Discard the running timer without saving the time?')) return;
+  localStorage.removeItem(timerKey());
+  updateTimerUI();
+}
+function updateTimerUI() {
+  const t = currentUser ? runningTimer() : null;
+  $('timerChip').classList.toggle('hidden', !t);
+  $('timeSheetTimerStart').classList.toggle('hidden', !!t);
+  $('timeSheetTimerStop').classList.toggle('hidden', !t);
+  $('timeSheetTimerDiscard').classList.toggle('hidden', !t);
+  $('timeSheetTimerBar').classList.toggle('running', !!t);
+  if (t) {
+    const clock = timerClockText(Date.now() - t.start);
+    $('timerChipText').textContent = clock;
+    $('timerChip').title = `Timer running for ${t.clientName}. Click to open the Time Sheet.`;
+    $('timeSheetTimerStatus').textContent = `Timing ${t.clientName}: ${clock} since ${new Date(t.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}${timeSheetISODate(new Date(t.start)) !== timeSheetISODate(new Date()) ? ` on ${timeSheetDateLabel(timeSheetISODate(new Date(t.start)))}` : ''}.`;
+    if (!timerTick) timerTick = setInterval(updateTimerUI, 1000);
+  } else {
+    $('timeSheetTimerStatus').textContent = "Choose the client and click Start Timer when you begin. Stop it when you're done and the time is filled in for you.";
+    if (timerTick) { clearInterval(timerTick); timerTick = null; }
+  }
+}
+
+// Fills the form from an earlier entry so the same work can be logged again.
+function repeatTimeSheetEntry(id) {
+  const entry = timeSheetEntries.find(item => item.id === id);
+  if (!entry) return;
+  if (timeSheetEditingId) cancelTimeSheetEdit(false);
+  populateTimeSheetClients();
+  if ([...$('timeSheetClient').options].some(o => o.value === entry.clientPath)) $('timeSheetClient').value = entry.clientPath;
+  $('timeSheetWork').value = entry.work || '';
+  $('timeSheetHours').value = Number(entry.hours || 0).toFixed(2);
+  toast(`Filled in from ${entry.date}. Pick the date and click Add Time.`);
+  $('timeSheetAdd').focus();
 }

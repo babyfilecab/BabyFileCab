@@ -192,6 +192,24 @@ export namespace main {
 	        this.size = source["size"];
 	    }
 	}
+	export class EncryptionReport {
+	    checked: number;
+	    unencrypted: string[];
+	    encrypted: number;
+	    failed: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new EncryptionReport(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.checked = source["checked"];
+	        this.unencrypted = source["unencrypted"];
+	        this.encrypted = source["encrypted"];
+	        this.failed = source["failed"];
+	    }
+	}
 	export class EngagementLetterLogoInfo {
 	    path: string;
 	    dataURL: string;
@@ -455,6 +473,7 @@ export namespace main {
 	    name: string;
 	    size: number;
 	    modified: string;
+	    encrypted: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new InboxFile(source);
@@ -465,6 +484,7 @@ export namespace main {
 	        this.name = source["name"];
 	        this.size = source["size"];
 	        this.modified = source["modified"];
+	        this.encrypted = source["encrypted"];
 	    }
 	}
 	export class InvoiceLineInput {
@@ -635,6 +655,46 @@ export namespace main {
 	        this.deletedAt = source["deletedAt"];
 	        this.deletedBy = source["deletedBy"];
 	        this.expiresAt = source["expiresAt"];
+	    }
+	}
+	export class RetentionItem {
+	    clientId: string;
+	    clientName: string;
+	    clientPath: string;
+	    taxYear: string;
+	    path: string;
+	    pastSince: number;
+	    held: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new RetentionItem(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.clientId = source["clientId"];
+	        this.clientName = source["clientName"];
+	        this.clientPath = source["clientPath"];
+	        this.taxYear = source["taxYear"];
+	        this.path = source["path"];
+	        this.pastSince = source["pastSince"];
+	        this.held = source["held"];
+	    }
+	}
+	export class RetentionSettings {
+	    years: number;
+	    held: string[];
+	    remindedOn?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RetentionSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.years = source["years"];
+	        this.held = source["held"];
+	        this.remindedOn = source["remindedOn"];
 	    }
 	}
 	export class TimeSheetEntry {
@@ -815,6 +875,28 @@ export namespace main {
 	        this.ptin = source["ptin"];
 	        this.telephone = source["telephone"];
 	        this.fax = source["fax"];
+	    }
+	}
+	export class WISPInput {
+	    coordinator: string;
+	    devices: string;
+	    services: string;
+	    mfa: string;
+	    notes: string;
+	    lastMade?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new WISPInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.coordinator = source["coordinator"];
+	        this.devices = source["devices"];
+	        this.services = source["services"];
+	        this.mfa = source["mfa"];
+	        this.notes = source["notes"];
+	        this.lastMade = source["lastMade"];
 	    }
 	}
 

@@ -167,14 +167,17 @@ function updateAutoLockMenu() {
   }
 }
 
+const THEMES = { light: 'Light Theme', dark: 'Dark Theme', purple: 'Purple Theme' };
 function applyTheme(theme, persist = true) {
-  currentTheme = theme === 'dark' ? 'dark' : 'light';
+  currentTheme = THEMES[theme] ? theme : 'light';
   document.documentElement.dataset.theme = currentTheme;
   if (persist) localStorage.setItem('babyfilecab-theme', currentTheme);
   const logoSource = currentTheme === 'dark' ? 'logo-dark.png' : 'logo.png';
   document.querySelectorAll('img.logo, img.auth-logo').forEach(img => { img.src = logoSource; });
-  if ($('lightThemeMenuItem')) $('lightThemeMenuItem').textContent = `${currentTheme === 'light' ? '✓ ' : ''}Light Theme`;
-  if ($('darkThemeMenuItem')) $('darkThemeMenuItem').textContent = `${currentTheme === 'dark' ? '✓ ' : ''}Dark Theme`;
+  for (const [name, label] of Object.entries(THEMES)) {
+    const item = $(`${name}ThemeMenuItem`);
+    if (item) item.textContent = `${currentTheme === name ? '✓ ' : ''}${label}`;
+  }
 }
 
 function clearPreview() {

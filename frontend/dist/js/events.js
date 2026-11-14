@@ -6,6 +6,9 @@ function wireEvents() {
   wireInbox();
   wireBackups();
   wireUpdates();
+  wireRetention();
+  wireEncryptionCheck();
+  wireWISP();
   $('documentVersionsList').addEventListener('click', e => call(() => handleDocumentVersionClick(e)));
   $('needsAttentionBtn').addEventListener('click', () => call(() => refreshNeedsAttention({ open: true })));
   $('needsAttentionClose').addEventListener('click', hideNeedsAttention);
@@ -28,11 +31,16 @@ function wireEvents() {
   $('timeSheetDateConfirm').addEventListener('click', acceptTimeSheetCalendarDate);
   $('timeSheetCalendarPopover').addEventListener('click', e => e.stopPropagation());
   $('timeSheetAdd').addEventListener('click', addTimeSheetEntry);
+  $('timeSheetTimerStart').addEventListener('click', startTimeSheetTimer);
+  $('timeSheetTimerStop').addEventListener('click', stopTimeSheetTimer);
+  $('timeSheetTimerDiscard').addEventListener('click', discardTimeSheetTimer);
+  $('timerChip').addEventListener('click', () => call(showTimeSheet));
   ['timeSheetPeriod', 'timeSheetPerson', 'timeSheetClientFilter'].forEach(id => $(id).addEventListener('change', () => { updateTimeSheetDateStatus(); renderTimeSheet(); }));
   $('timeSheetExport').addEventListener('click', () => call(exportTimeSheet));
   $('timeSheetCancelEdit').addEventListener('click', () => cancelTimeSheetEdit());
   $('timeSheetHours').addEventListener('keydown', e => { if (e.key === 'Enter') addTimeSheetEntry(); });
   $('timeSheetRows').addEventListener('click', e => {
+    const again=e.target.closest('[data-time-entry-repeat-id]'); if(again) { repeatTimeSheetEntry(again.dataset.timeEntryRepeatId); return; }
     const edit=e.target.closest('[data-time-entry-edit-id]'); if(edit) { editTimeSheetEntry(edit.dataset.timeEntryEditId); return; }
     const button=e.target.closest('[data-time-entry-id]'); if(button) deleteTimeSheetEntry(button.dataset.timeEntryId);
   });
@@ -511,6 +519,9 @@ function wireEvents() {
       if (!$('engagementWordingBackdrop').classList.contains('hidden')) { e.preventDefault(); hideEngagementWordingEditor(); return; }
       if (!$('invoiceTimeBackdrop').classList.contains('hidden')) { e.preventDefault(); hideInvoiceTimePicker(); return; }
       if (!$('invoiceListBackdrop').classList.contains('hidden')) { e.preventDefault(); hideInvoiceList(); return; }
+      if (!$('retentionBackdrop').classList.contains('hidden')) { e.preventDefault(); hideRetention(); return; }
+      if (!$('encryptionCheckBackdrop').classList.contains('hidden')) { e.preventDefault(); hideEncryptionCheck(); return; }
+      if (!$('wispBackdrop').classList.contains('hidden')) { e.preventDefault(); hideWISP(); return; }
       if (!$('engagementLetterBackdrop').classList.contains('hidden')) { e.preventDefault(); hideEngagementLetter(); return; }
       if (!$('taxCalculatorBackdrop').classList.contains('hidden')) { e.preventDefault(); hideTaxCalculator(); return; }
       if (!$('firmCalendarBackdrop').classList.contains('hidden')) { e.preventDefault(); hideFirmCalendar(); return; }

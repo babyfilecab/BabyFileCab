@@ -1,0 +1,13 @@
+/* LedgerLeaf-style touches: a deep purple title bar with white text and a
+   soft lavender page. */
+:root[data-theme="purple"] { --day-selected: #7446c9; --day-selected-border: #5f35af; --day-selected-ring: rgba(116, 70, 201, .28); --bg: #f5f2fa; --header: #3a1e63; --header-sub: #cdbde6; }
+:root[data-theme="purple"] .app-menubar { background: var(--header); border-bottom-color: rgba(255,255,255,.10); }
+:root[data-theme="purple"] .menu-trigger { color: var(--header-sub); }
+:root[data-theme="purple"] .menu-trigger:hover, :root[data-theme="purple"] .menu-trigger.active { background: rgba(255,255,255,.14); color: #fff; }
+:root[data-theme="purple"] .app-header { background: var(--header); border-bottom-color: var(--header); }
+:root[data-theme="purple"] .brand-title, :root[data-theme="purple"] .signed-in-name { color: #fff; }
+:root[data-theme="purple"] .data-path, :root[data-theme="purple"] .signed-in-role { color: var(--header-sub); }
+:root[data-theme="purple"] .signed-in-avatar { background: rgba(255,255,255,.14); color: #fff; border-color: rgba(255,255,255,.28); }
+:root[data-theme="purple"] #openFirmCalendarBtn.calendar-icon-button { background: rgba(255,255,255,.95); border-color: transparent; }
+:root[data-theme="purple"] #openFirmCalendarBtn.calendar-icon-button:hover { background: #fff; border-color: transparent; }
+:root[data-theme="purple"] .logo { background: #fff; border-radius: 10px; padding: 3px; }
