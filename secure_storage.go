@@ -161,7 +161,9 @@ func migrateCompanyData(root, storageRoot, companyID string, key []byte) error {
 	if len(key) != vaultKeySize {
 		return errors.New("invalid company key")
 	}
-	if err:=os.Chmod(root,0700);err!=nil{return err}
+	if err := os.Chmod(root, 0700); err != nil {
+		return err
+	}
 	if _, err := os.Stat(filepath.Join(root, vaultReadyName)); err == nil {
 		return nil
 	} else if !errors.Is(err, os.ErrNotExist) {
@@ -187,7 +189,9 @@ func migrateCompanyData(root, storageRoot, companyID string, key []byte) error {
 			return fmt.Errorf("symlink in company data: %s", path)
 		}
 		if d.IsDir() {
-			if err:=os.Chmod(path,0700);err!=nil{return err}
+			if err := os.Chmod(path, 0700); err != nil {
+				return err
+			}
 			if path == root {
 				return nil
 			}

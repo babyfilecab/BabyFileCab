@@ -110,7 +110,9 @@ func (a *App) writeWrappedKeyAt(path, companyID, username, password string, vaul
 
 func (a *App) unwrapKey(companyID, username, password string) ([]byte, error) {
 	path, err := a.activeWrappedKeyPath(companyID, username)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
