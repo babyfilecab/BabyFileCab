@@ -1,6 +1,7 @@
 // Wires every button and input to its handler.
 
 function wireEvents() {
+  wireRecycleBin();
   $('needsAttentionBtn').addEventListener('click', () => call(() => refreshNeedsAttention({ open: true })));
   $('needsAttentionClose').addEventListener('click', hideNeedsAttention);
   $('needsAttentionCloseTop').addEventListener('click', hideNeedsAttention);

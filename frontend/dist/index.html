@@ -50,6 +50,7 @@
           <button type="button" data-menu-action="edit-client-picker">Edit Client…</button>
           <button type="button" data-menu-action="rename-client-picker">Rename Client…</button>
           <button type="button" data-menu-action="delete-client-picker" class="menu-danger">Delete Client…</button>
+          <button type="button" data-menu-action="recycle-bin">Recycle Bin…</button>
           <div class="menu-separator"></div>
           <button type="button" data-menu-action="restore-client">Restore Client…</button>
           <button type="button" data-menu-action="archive-client">Archive Client…</button>
@@ -1649,6 +1650,24 @@
     </div>
   </div>
 
+  <div id="recycleBinBackdrop" class="modal-backdrop hidden">
+    <div class="modal recycle-bin-modal" role="dialog" aria-modal="true" aria-labelledby="recycleBinTitle">
+      <div class="needs-attention-head">
+        <div>
+          <h2 id="recycleBinTitle">Recycle Bin</h2>
+          <p>Deleted files, tax years and clients stay here, still encrypted, for 30 days. Restore puts them back where they were.</p>
+        </div>
+        <button id="recycleBinCloseTop" class="secondary" type="button">Close</button>
+      </div>
+      <ul id="recycleBinList" class="needs-attention-list"></ul>
+      <p id="recycleBinEmpty" class="recycle-bin-empty hidden">The Recycle Bin is empty.</p>
+      <div class="modal-actions">
+        <button id="recycleBinEmptyAll" class="danger" type="button" style="margin-right:auto">Empty Recycle Bin</button>
+        <button id="recycleBinClose" class="primary" type="button">Done</button>
+      </div>
+    </div>
+  </div>
+
   <div id="needsAttentionBackdrop" class="modal-backdrop hidden">
     <div class="modal needs-attention-modal" role="dialog" aria-modal="true" aria-labelledby="needsAttentionTitle">
       <div class="needs-attention-head">
@@ -1712,6 +1731,7 @@
   <script src="js/preview.js"></script>
   <script src="js/context-menus.js"></script>
   <script src="js/actions.js"></script>
+  <script src="js/recycle-bin.js"></script>
   <script src="js/menus.js"></script>
   <script src="js/dialogs.js"></script>
   <script src="js/app.js"></script>

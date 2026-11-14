@@ -340,10 +340,8 @@ func (a *App) DeleteClient(path string) error {
 		return err
 	}
 	_, displayName, _ := parseClientDirName(filepath.Base(path))
-	_ = a.appendAudit(path, "Client deleted", displayName)
-	a.removeDocumentMetadataPrefix(path)
-	_ = a.metadataDelete("client-profile", a.documentMetadataKey(path))
-	return os.RemoveAll(path)
+	_ = a.appendAudit(path, "Client moved to Recycle Bin", displayName)
+	return a.moveToRecycleBin(path, "client", "Work Space")
 }
 
 func (a *App) AddTaxYear(clientPath, year string) (string, error) {
@@ -387,9 +385,9 @@ func (a *App) DeleteTaxYear(path string) error {
 	if err != nil {
 		return err
 	}
-	_ = a.appendAudit(path, "Tax year deleted", filepath.Base(path))
-	a.removeDocumentMetadataPrefix(path)
-	return os.RemoveAll(path)
+	_ = a.appendAudit(path, "Tax year moved to Recycle Bin", filepath.Base(path))
+	_, clientName, _ := parseClientDirName(filepath.Base(filepath.Dir(path)))
+	return a.moveToRecycleBin(path, "taxyear", clientName)
 }
 
 func (a *App) AddSection(parentPath, name string) (string, error) {
@@ -472,6 +470,11 @@ func (a *App) nextClientID() int {
 			if n, err := strconv.Atoi(name[:5]); err == nil && n > max {
 				max = n
 			}
+		}
+	}
+	for _, id := range a.recycledClientIDs() {
+		if n, err := strconv.Atoi(id); err == nil && n > max {
+			max = n
 		}
 	}
 	return max + 1

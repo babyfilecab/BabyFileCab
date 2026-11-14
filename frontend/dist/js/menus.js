@@ -35,7 +35,7 @@ async function handleMenuAction(action) {
         break;
       }
       case 'delete-client-picker': {
-        const client = await chooseClient('Delete Client', 'Choose the client you want to permanently delete.');
+        const client = await chooseClient('Delete Client', 'Choose the client to move to the Recycle Bin. You can restore it for 30 days.');
         if (!client) return;
         selectNode(client);
         await doAction('delete-client');
@@ -89,6 +89,9 @@ async function handleMenuAction(action) {
       case 'search-documents':
       case 'global-find':
         showGlobalFind();
+        break;
+      case 'recycle-bin':
+        await showRecycleBin();
         break;
       case 'unarchive-clients': {
         const archivedClients = await backend().ListArchivedClients();

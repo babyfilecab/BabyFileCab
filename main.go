@@ -48,6 +48,7 @@ type App struct {
 	lastActivity    time.Time
 	autoLockMinutes int
 	calendarMu      sync.Mutex
+	recycleMu       sync.Mutex
 	auditMu         sync.Mutex
 	timesheetMu     sync.Mutex
 	tempMu          sync.Mutex

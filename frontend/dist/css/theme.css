@@ -339,3 +339,9 @@ tr:first-child { background: var(--panel-2); font-weight: 600; }
 :root[data-theme="dark"] button.secondary:hover { background: #273449; border-color: #475569; color: #f8fafc; }
 :root[data-theme="dark"] .tax-calculator-notice { background: var(--accent-soft); border-color: rgba(59,130,246,.35); color: var(--text-2); }
 :root[data-theme="dark"] .modal label, :root[data-theme="dark"] .modal .tax-field > span { color: var(--text-2); }
+
+/* Recycle Bin ------------------------------------------------------------------ */
+.recycle-bin-modal { width: min(760px, calc(100vw - 60px)); max-height: calc(100vh - 80px); display: flex; flex-direction: column; }
+.recycle-bin-actions { display: flex; gap: 6px; flex: 0 0 auto; }
+.recycle-bin-empty { margin: 8px 0 0; padding: 22px; text-align: center; color: var(--muted); border: 1px dashed var(--line-strong); border-radius: 8px; }
+.recycle-bin-empty.hidden { display: none; }

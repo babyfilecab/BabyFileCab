@@ -40,7 +40,7 @@ async function doAction(action) {
       }
       case 'delete-client': {
         const client = selectedClient(); if (!client) throw new Error('Select a client first.');
-        if (!confirm(`Delete ${client.name} and every document inside it?`)) return;
+        if (!confirm(`Move ${client.name} and every document inside it to the Recycle Bin? You can restore it for 30 days.`)) return;
         await backend().DeleteClient(client.path); selectedNode = null; await refreshTree(); clearPreview(); break;
       }
       case 'add-year': {
@@ -58,7 +58,7 @@ async function doAction(action) {
       }
       case 'delete-year': {
         if (selectedNode?.type !== 'taxyear') throw new Error('Select a tax year first.');
-        if (!confirm(`Delete tax year ${selectedNode.name} and everything inside it?`)) return;
+        if (!confirm(`Move tax year ${selectedNode.name} and everything inside it to the Recycle Bin? You can restore it for 30 days.`)) return;
         await backend().DeleteTaxYear(selectedNode.path); selectedNode = null; await refreshTree(); clearPreview(); break;
       }
       case 'add-section': {
@@ -104,7 +104,7 @@ async function doAction(action) {
         const files = [...selectedFilePaths].map(path => findNodeByPath(path, treeData)).filter(node => node?.type === 'file');
         if (!files.length) files.push(selectedNode);
         if (files.some(node => node.name === 'notes.txt')) throw new Error('Client notes.txt cannot be deleted. Deselect it first.');
-        if (!confirm(files.length > 1 ? `Delete all ${files.length} selected files?` : `Delete ${files[0].name}?`)) return;
+        if (!confirm(files.length > 1 ? `Move all ${files.length} selected files to the Recycle Bin?` : `Move ${files[0].name} to the Recycle Bin?`)) return;
         try {
           for (const file of files) await backend().DeleteFile(file.path);
         } finally {

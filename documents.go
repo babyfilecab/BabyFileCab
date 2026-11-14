@@ -85,7 +85,7 @@ func (a *App) GlobalFind(query string) ([]GlobalSearchResult, error) {
 		if d.IsDir() {
 			// Legacy-company data may live at ~/BabyFileCabData. Never descend
 			// into the container used by other company workspaces.
-			if path != a.dataRoot && filepath.Dir(path) == a.dataRoot && d.Name() == "companies" {
+			if path != a.dataRoot && filepath.Dir(path) == a.dataRoot && (d.Name() == "companies" || d.Name() == recycleBinDir) {
 				return fs.SkipDir
 			}
 			return nil
@@ -319,9 +319,21 @@ func (a *App) DeleteFile(path string) error {
 		return errors.New("notes.txt is protected")
 	}
 	name := filepath.Base(path)
-	_ = a.appendAudit(path, "File deleted", name)
-	a.removeDocumentMetadata(path)
-	return os.Remove(path)
+	location := ""
+	if cp, err := a.clientPathFor(path); err == nil {
+		if rel, err := filepath.Rel(cp, filepath.Dir(path)); err == nil {
+			_, clientName, _ := parseClientDirName(filepath.Base(cp))
+			location = clientName
+			if rel != "." {
+				location += " › " + strings.ReplaceAll(filepath.ToSlash(rel), "/", " › ")
+			}
+		}
+	}
+	if err := a.moveToRecycleBin(path, "file", location); err != nil {
+		return err
+	}
+	_ = a.appendAudit(filepath.Dir(path), "File moved to Recycle Bin", name)
+	return nil
 }
 
 func (a *App) safePath(path string) (string, error) {
@@ -341,7 +353,7 @@ func (a *App) safePath(path string) (string, error) {
 	}
 	relPath, _ := filepath.Rel(root, abs)
 	for _, part := range splitRel(relPath) {
-		if part == vaultDBName || part == vaultReadyName || part == accountsDBName || part == accountsReadyName || part == ".vault-keys" || part == ".migration-backups" || part == ".plaintext-preview" || part == ".users.json" || part == ".companies.json" || part == clientProfileFile || part == documentMetadataFile || part == firmCalendarFile {
+		if part == vaultDBName || part == vaultReadyName || part == accountsDBName || part == accountsReadyName || part == ".vault-keys" || part == ".migration-backups" || part == ".plaintext-preview" || part == recycleBinDir || part == ".users.json" || part == ".companies.json" || part == clientProfileFile || part == documentMetadataFile || part == firmCalendarFile {
 			return "", errors.New("this is an internal BabyFileCab file")
 		}
 	}
