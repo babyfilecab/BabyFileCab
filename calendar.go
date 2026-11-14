@@ -230,7 +230,7 @@ func (a *App) resolveFirmCalendarAssignmentsUnlocked(stored []storedFirmCalendar
 
 	out := make([]FirmCalendarAssignment, 0, len(stored))
 	for _, item := range stored {
-		resolved := FirmCalendarAssignment{Date: item.Date, ClientID: item.ClientID, ClientName: item.ClientName, ReturnType: item.ReturnType, Status: item.Status, PreparerUsername: item.PreparerUsername}
+		resolved := FirmCalendarAssignment{Date: item.Date, ClientID: item.ClientID, ClientName: item.ClientName, ReturnType: item.ReturnType, Status: item.Status, StatusSince: item.StatusSince, PreparerUsername: item.PreparerUsername}
 		if props, ok := active[item.ClientID]; ok {
 			resolved.ClientName = props.Name
 			resolved.ClientPath = props.Path

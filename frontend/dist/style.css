@@ -2346,3 +2346,26 @@ tr:first-child { background: var(--panel-2); font-weight: 600; }
 .password-meter[data-score="4"] .password-meter-bar span { background: #16a34a; }
 .password-meter[data-score="1"] .password-meter-text { color: #b91c1c; }
 :root[data-theme="dark"] .password-meter[data-score="1"] .password-meter-text { color: #fca5a5; }
+
+/* Needs attention ------------------------------------------------------------ */
+.attention-button {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 38px; padding: 0 12px;
+  border: 1px solid #fcd34d; border-radius: 8px;
+  background: #fffbeb; color: #b45309; font-weight: 600; font-size: 13px;
+}
+.attention-button:hover { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+.attention-button.hidden { display: none; }
+.needs-attention-modal { width: min(680px, calc(100vw - 60px)); max-height: calc(100vh - 80px); display: flex; flex-direction: column; }
+.needs-attention-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.needs-attention-head p { margin: 0 0 14px; }
+.needs-attention-list { list-style: none; margin: 0; padding: 0; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+.needs-attention-list:empty { display: none; }
+.needs-attention-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.needs-attention-item:last-child { border-bottom: 0; }
+.needs-attention-item strong { display: block; font-weight: 600; color: var(--text); }
+.needs-attention-item span { display: block; margin-top: 2px; font-size: 12.5px; color: var(--muted); }
+.needs-attention-actions { align-items: center; }
+.needs-attention-snooze { margin-right: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+:root[data-theme="dark"] .attention-button { background: rgba(245, 158, 11, .12); border-color: rgba(245, 158, 11, .45); color: #fbbf24; }
+:root[data-theme="dark"] .attention-button:hover { background: rgba(245, 158, 11, .2); }

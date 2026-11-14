@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"testing"
+	"time"
 )
 
 func TestCalendarStatusUpdatesOnlySelectedAssignment(t *testing.T) {
@@ -14,6 +15,9 @@ func TestCalendarStatusUpdatesOnlySelectedAssignment(t *testing.T) {
 		if items[0].Status != status || items[1].Status != "" || items[2].Status != "" {
 			t.Fatal("wrong assignment changed")
 		}
+		if items[0].StatusSince != time.Now().Format("2006-01-02") {
+			t.Fatal("status change date not recorded")
+		}
 	}
 	if updateCalendarAssignmentStatus(items, "2026-01-01", "1", "invalid") == nil {
 		t.Fatal("invalid status accepted")
@@ -24,7 +28,7 @@ func TestCalendarStatusUpdatesOnlySelectedAssignment(t *testing.T) {
 	if err := updateCalendarAssignmentStatus(items, "2026-01-01", "1", ""); err != nil {
 		t.Fatal(err)
 	}
-	if items[0].Status != "" {
+	if items[0].Status != "" || items[0].StatusSince != "" {
 		t.Fatal("clear did not remove status")
 	}
 	if err := updateCalendarAssignmentStatus(items, "2026-01-01", "1", "completed"); err != nil {

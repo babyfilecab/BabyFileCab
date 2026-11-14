@@ -101,6 +101,7 @@
         <div class="menu-dropdown hidden" id="toolsMenu" role="menu">
           <button type="button" data-menu-action="tax-calculator">Federal Tax Calculator…</button>
           <button type="button" data-menu-action="firm-calendar">Firm Calendar…</button>
+          <button type="button" data-menu-action="needs-attention">Needs Attention…</button>
           <button type="button" data-menu-action="engagement-letter">Engagement Letter Generator…</button>
           <button type="button" data-menu-action="create-invoice">Create an Invoice…</button>
           <button type="button" data-menu-action="currency-converter">Currency Converter (IRS)…</button>
@@ -138,6 +139,7 @@
           <div id="signedInName" class="signed-in-name"></div>
           <div id="signedInRole" class="signed-in-role"></div>
         </div>
+        <button class="attention-button hidden" id="needsAttentionBtn" type="button" title="Calendar items that need attention" aria-label="Calendar items that need attention"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 2.5a5 5 0 0 0-5 5v2.7l-1.3 2.6a.8.8 0 0 0 .7 1.2h11.2a.8.8 0 0 0 .7-1.2L15 10.2V7.5a5 5 0 0 0-5-5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 16a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="needsAttentionCount">0</span></button>
         <button class="calendar-icon-button" id="openFirmCalendarBtn" type="button" title="Open Firm Calendar" aria-label="Open Firm Calendar"><img src="calendar-icon.png" width="32" height="32" alt="" /></button>
       </div>
     </header>
@@ -1651,6 +1653,24 @@
       <div class="modal-actions app-audit-footer">
         <span id="appAuditStatus" class="app-audit-status">0 audit entries</span>
         <button id="appAuditClose" class="primary" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="needsAttentionBackdrop" class="modal-backdrop hidden">
+    <div class="modal needs-attention-modal" role="dialog" aria-modal="true" aria-labelledby="needsAttentionTitle">
+      <div class="needs-attention-head">
+        <div>
+          <h2 id="needsAttentionTitle">Needs attention</h2>
+          <p id="needsAttentionSummary"></p>
+        </div>
+        <button id="needsAttentionCloseTop" class="secondary" type="button">Close</button>
+      </div>
+      <ul id="needsAttentionList" class="needs-attention-list"></ul>
+      <div class="modal-actions needs-attention-actions">
+        <label class="needs-attention-snooze"><input id="needsAttentionSnooze" type="checkbox" /> Don't show at sign-in again today</label>
+        <button id="needsAttentionCalendar" class="secondary" type="button">Open Firm Calendar</button>
+        <button id="needsAttentionClose" class="primary" type="button">Done</button>
       </div>
     </div>
   </div>

@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"strings"
+	"time"
 )
 
 func updateCalendarAssignmentStatus(items []storedFirmCalendarAssignment, date, clientID, status string) error {
@@ -11,6 +12,13 @@ func updateCalendarAssignmentStatus(items []storedFirmCalendarAssignment, date, 
 	}
 	for i := range items {
 		if items[i].Date == date && items[i].ClientID == clientID {
+			if items[i].Status != status {
+				items[i].StatusSince = ""
+				if status != "" {
+					// Lets reminders tell how long an item has been waiting.
+					items[i].StatusSince = time.Now().Format("2006-01-02")
+				}
+			}
 			items[i].Status = status
 			return nil
 		}

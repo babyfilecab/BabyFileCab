@@ -118,6 +118,7 @@ type FirmCalendarAssignment struct {
 	ClientPath       string `json:"clientPath,omitempty"`
 	ReturnType       string `json:"returnType,omitempty"`
 	Status           string `json:"status,omitempty"`
+	StatusSince      string `json:"statusSince,omitempty"`
 	PreparerUsername string `json:"preparerUsername,omitempty"`
 }
 
@@ -127,6 +128,7 @@ type storedFirmCalendarAssignment struct {
 	ClientName       string `json:"clientName"`
 	ReturnType       string `json:"returnType,omitempty"`
 	Status           string `json:"status,omitempty"`
+	StatusSince      string `json:"statusSince,omitempty"` // YYYY-MM-DD the status was last changed
 	PreparerUsername string `json:"preparerUsername,omitempty"`
 }
 

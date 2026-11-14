@@ -462,10 +462,13 @@ async function enterApplication(user) {
   $('signedInRole').textContent = `${displayRole(user?.role)}${user?.companyName ? ` • ${user.companyName}` : ''} • @${user?.username || ''}`;
   $('dataPath').textContent = `Data: ${await backend().DataRoot()}`;
   await refreshTree();
+  refreshNeedsAttention({ atSignIn: true }).catch(() => {});
 }
 
 async function signOut() {
   sessionGeneration++;
+  hideNeedsAttention();
+  $('needsAttentionBtn').classList.add('hidden');
   hideCalendarScheduleClient();
   hideCalendarPreparerReassign();
   hideShortcutMapper();
@@ -1862,6 +1865,123 @@ function preferredFirmCalendarAssignment(items = firmCalendarAssignments) {
   })[0];
 }
 
+// Needs attention ------------------------------------------------------------
+// Flags scheduled work that has stalled, using the statuses preparers already
+// set on the Firm Calendar. Staff see their own and unassigned clients;
+// administrators see the whole firm.
+const NEEDS_ATTENTION_RULES = {
+  'waiting-on-reports': 7,
+  '8879-sent': 7,
+  'waiting-for-signature': 7,
+  'signed': 3,
+  'ready-to-e-file': 2,
+};
+let needsAttentionItems = [];
+
+function localISODate(date = new Date()) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function daysBetweenISO(fromISO, toISO) {
+  const [fy, fm, fd] = String(fromISO).split('-').map(Number);
+  const [ty, tm, td] = String(toISO).split('-').map(Number);
+  return Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(fy, fm - 1, fd)) / 86400000);
+}
+
+function findNeedsAttention(assignments, todayISO, user) {
+  const me = String(user?.username || '').toLowerCase();
+  const admin = user?.role === 'administrator';
+  const out = [];
+  for (const item of assignments || []) {
+    const owner = String(item.preparerUsername || '').toLowerCase();
+    if (!admin && owner && owner !== me) continue;
+    const status = item.status || '';
+    if (status === 'completed') continue;
+    const plural = n => `${n} day${n === 1 ? '' : 's'}`;
+    if (NEEDS_ATTENTION_RULES[status] !== undefined) {
+      // Older entries have no status date; fall back to the scheduled date.
+      const since = item.statusSince || item.date;
+      const days = daysBetweenISO(since, todayISO);
+      if (days >= NEEDS_ATTENTION_RULES[status]) {
+        out.push({ item, days, reason: `${firmCalendarStatusLabel(status)} for ${plural(days)}` });
+      }
+    } else if (item.date < todayISO) {
+      const days = daysBetweenISO(item.date, todayISO);
+      out.push({ item, days, reason: `${status ? firmCalendarStatusLabel(status) + ', s' : 'S'}cheduled ${plural(days)} ago` });
+    }
+  }
+  return out.sort((a, b) => b.days - a.days || String(a.item.clientName).localeCompare(String(b.item.clientName)));
+}
+
+function needsAttentionSnoozeKey() {
+  return `babyfilecab-needs-attention-snooze:${String(currentUser?.username || '').toLowerCase()}`;
+}
+
+async function refreshNeedsAttention({ atSignIn = false, open = false } = {}) {
+  if (!currentUser) return;
+  const generation = sessionGeneration;
+  const assignments = await backend().GetFirmCalendar2026();
+  if (!firmCalendarPreparers.length) firmCalendarPreparers = await backend().ListCompanyUsers().catch(() => []);
+  if (generation !== sessionGeneration) return;
+  needsAttentionItems = findNeedsAttention(assignments, localISODate(), currentUser);
+  const button = $('needsAttentionBtn');
+  $('needsAttentionCount').textContent = String(needsAttentionItems.length);
+  button.classList.toggle('hidden', needsAttentionItems.length === 0);
+  const snoozed = localStorage.getItem(needsAttentionSnoozeKey()) === localISODate();
+  if (open || (atSignIn && needsAttentionItems.length && !snoozed)) showNeedsAttention();
+}
+
+function showNeedsAttention() {
+  const count = needsAttentionItems.length;
+  const scope = currentUser?.role === 'administrator' ? 'across the firm' : 'for you and unassigned clients';
+  $('needsAttentionSummary').textContent = count
+    ? `${count} scheduled item${count === 1 ? '' : 's'} ${scope} ${count === 1 ? 'has' : 'have'} been waiting or ${count === 1 ? 'is' : 'are'} past due.`
+    : `Nothing needs attention ${scope}.`;
+  const list = $('needsAttentionList');
+  list.replaceChildren();
+  needsAttentionItems.forEach((entry, index) => {
+    const li = document.createElement('li');
+    li.className = 'needs-attention-item';
+    const body = document.createElement('div');
+    const name = document.createElement('strong');
+    name.textContent = entry.item.clientName || `Client ${entry.item.clientId}`;
+    const meta = document.createElement('span');
+    const preparer = entry.item.preparerUsername ? calendarPreparerName(entry.item.preparerUsername) : 'Unassigned';
+    meta.textContent = `${entry.reason} · ${firmCalendarFormatDate(firmCalendarDateFromISO(entry.item.date), { month: 'short', day: 'numeric', year: 'numeric' })} · ${preparer}`;
+    body.append(name, meta);
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'secondary';
+    open.textContent = 'Open';
+    open.dataset.needsAttentionIndex = String(index);
+    li.append(body, open);
+    list.appendChild(li);
+  });
+  $('needsAttentionSnooze').checked = localStorage.getItem(needsAttentionSnoozeKey()) === localISODate();
+  $('needsAttentionBackdrop').classList.remove('hidden');
+  setTimeout(() => $('needsAttentionClose').focus(), 20);
+}
+
+function hideNeedsAttention() {
+  const backdrop = $('needsAttentionBackdrop');
+  if (!backdrop || backdrop.classList.contains('hidden')) return;
+  try {
+    if ($('needsAttentionSnooze').checked) localStorage.setItem(needsAttentionSnoozeKey(), localISODate());
+    else localStorage.removeItem(needsAttentionSnoozeKey());
+  } catch (_) {}
+  backdrop.classList.add('hidden');
+}
+
+async function openNeedsAttentionItem(index) {
+  const entry = needsAttentionItems[Number(index)];
+  hideNeedsAttention();
+  await showFirmCalendar();
+  if (entry) {
+    const fresh = firmCalendarAssignments.find(a => a.date === entry.item.date && a.clientId === entry.item.clientId) || entry.item;
+    focusFirmCalendarOnAssignment(fresh, { showClient: true });
+  }
+}
+
 function focusFirmCalendarOnAssignment(item, { showClient = false } = {}) {
   if (!item) return false;
   const date = firmCalendarDateFromISO(item.date);
@@ -1906,6 +2026,7 @@ async function showFirmCalendar() {
 }
 
 function hideFirmCalendar() {
+  if (!$('firmCalendarBackdrop').classList.contains('hidden')) refreshNeedsAttention().catch(() => {});
   hideCalendarScheduleClient();
   hideCalendarPreparerReassign();
   $('firmCalendarPreparerMenu').classList.add('hidden');
@@ -2803,6 +2924,15 @@ async function changePassword() {
 }
 
 function wireEvents() {
+  $('needsAttentionBtn').addEventListener('click', () => call(() => refreshNeedsAttention({ open: true })));
+  $('needsAttentionClose').addEventListener('click', hideNeedsAttention);
+  $('needsAttentionCloseTop').addEventListener('click', hideNeedsAttention);
+  $('needsAttentionCalendar').addEventListener('click', () => { hideNeedsAttention(); call(showFirmCalendar); });
+  $('needsAttentionList').addEventListener('click', e => {
+    const button = e.target.closest('[data-needs-attention-index]');
+    if (button) call(() => openNeedsAttentionItem(button.dataset.needsAttentionIndex));
+  });
+  $('needsAttentionBackdrop').addEventListener('keydown', e => { if (e.key === 'Escape') hideNeedsAttention(); });
   $('openFirmCalendarBtn').addEventListener('click', () => call(showFirmCalendar));
   $('timeSheetCloseTop').addEventListener('click', hideTimeSheet);
   $('timeSheetClose').addEventListener('click', hideTimeSheet);
@@ -4683,6 +4813,9 @@ async function handleMenuAction(action) {
       case 'tax-calculator':
         await backend().LogAppEvent('Federal Tax Calculator opened', 'Tools menu');
         showTaxCalculator();
+        break;
+      case 'needs-attention':
+        await refreshNeedsAttention({ open: true });
         break;
       case 'firm-calendar':
         await backend().LogAppEvent('Firm Calendar opened', `${firmCalendarYear} weekly client schedule`);
