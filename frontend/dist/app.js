@@ -457,6 +457,7 @@ async function enterApplication(user) {
   $('appShell').classList.remove('hidden');
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.username || 'User';
   $('signedInName').textContent = fullName;
+  $('signedInAvatar').textContent = ([user?.firstName, user?.lastName].filter(Boolean).map(n => n.trim().charAt(0)).join('') || (user?.username || '?').charAt(0)).toUpperCase();
   $('signedInRole').textContent = `${displayRole(user?.role)}${user?.companyName ? ` • ${user.companyName}` : ''} • @${user?.username || ''}`;
   $('dataPath').textContent = `Data: ${await backend().DataRoot()}`;
   await refreshTree();
@@ -3342,7 +3343,8 @@ function nodeContent(node) {
     icon.classList.add('client-baby-icon');
     icon.innerHTML = `<svg viewBox="0 0 32 32" aria-label="baby face" role="img"><circle cx="16" cy="17" r="11" fill="#ffd25a" stroke="#d8a62b" stroke-width="1.2"/><path d="M13 7c0-3.2 5.6-3.1 5.6.2 0 1.7-1.6 2.5-3 2.1-1.3-.3-1.7-1.5-1.1-2.4" fill="none" stroke="#9b6427" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16" r="1.3" fill="#4e3927"/><circle cx="20" cy="16" r="1.3" fill="#4e3927"/><path d="M12.5 21c1.8 2 5.2 2 7 0" fill="none" stroke="#a14f46" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="18.5" r="1.4" fill="#f4a7a1" opacity=".65"/><circle cx="24" cy="18.5" r="1.4" fill="#f4a7a1" opacity=".65"/></svg>`;
   } else {
-    icon.textContent = iconFor(node);
+    icon.classList.add(`node-icon-${node.type === 'file' ? 'file' : 'folder'}`);
+    icon.innerHTML = treeIconSVG(node);
   }
   const name = document.createElement('span');
   name.className = 'node-name';
@@ -3359,6 +3361,28 @@ function nodeContent(node) {
   }
   return wrap;
 }
+
+// Static, trusted SVG markup only: never interpolate node names in here.
+const TREE_ICON_FOLDER = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 5.5a1.5 1.5 0 0 1 1.5-1.5h3.6l1.6 1.8H16a1.5 1.5 0 0 1 1.5 1.5v7.2A1.5 1.5 0 0 1 16 16H4a1.5 1.5 0 0 1-1.5-1.5z" fill="currentColor" opacity=".18"/><path d="M2.5 5.5a1.5 1.5 0 0 1 1.5-1.5h3.6l1.6 1.8H16a1.5 1.5 0 0 1 1.5 1.5v7.2A1.5 1.5 0 0 1 16 16H4a1.5 1.5 0 0 1-1.5-1.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+const TREE_ICON_PERMANENT = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 5.5a1.5 1.5 0 0 1 1.5-1.5h3.6l1.6 1.8H16a1.5 1.5 0 0 1 1.5 1.5v7.2A1.5 1.5 0 0 1 16 16H4a1.5 1.5 0 0 1-1.5-1.5z" fill="currentColor" opacity=".18"/><path d="M2.5 5.5a1.5 1.5 0 0 1 1.5-1.5h3.6l1.6 1.8H16a1.5 1.5 0 0 1 1.5 1.5v7.2A1.5 1.5 0 0 1 16 16H4a1.5 1.5 0 0 1-1.5-1.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="m10 8.3.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L7.1 10.4l2-.3z" fill="currentColor"/></svg>';
+const TREE_ICON_YEAR = '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4.5" width="14" height="12" rx="2" fill="currentColor" opacity=".14"/><rect x="3" y="4.5" width="14" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3 8.5h14M7 3v3M13 3v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+function treeFileIcon(color, label) {
+  return `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 2.5h6.5L15.5 6.5v10a1 1 0 0 1-1 1h-9.5a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1z" fill="#fff" stroke="#94a3b8" stroke-width="1.2" stroke-linejoin="round"/><path d="M11.5 2.5v4h4" fill="none" stroke="#94a3b8" stroke-width="1.2" stroke-linejoin="round"/>${label ? `<rect x="2" y="10" width="12" height="6" rx="1.2" fill="${color}"/><text x="8" y="14.6" text-anchor="middle" font-size="4.6" font-weight="700" font-family="sans-serif" fill="#fff">${label}</text>` : `<path d="M7 10h6M7 12.5h6M7 15h4" stroke="${color}" stroke-width="1.2" stroke-linecap="round"/>`}</svg>`;
+}
+function treeIconSVG(node) {
+  if (node.type === 'permanent') return TREE_ICON_PERMANENT;
+  if (node.type === 'taxyear') return TREE_ICON_YEAR;
+  if (node.type === 'section') return TREE_ICON_FOLDER;
+  const ext = (String(node.name || '').split('.').pop() || '').toLowerCase();
+  if (ext === 'pdf') return treeFileIcon('#dc2626', 'PDF');
+  if (['png','jpg','jpeg','gif','webp','bmp'].includes(ext)) return treeFileIcon('#7c3aed', 'IMG');
+  if (ext === 'csv' || ext === 'xls' || ext === 'xlsx') return treeFileIcon('#16a34a', ext === 'csv' ? 'CSV' : 'XLS');
+  if (ext === 'doc' || ext === 'docx' || ext === 'rtf') return treeFileIcon('#2563eb', 'DOC');
+  if (['eml','msg','mbox','oft'].includes(ext)) return treeFileIcon('#0891b2', 'EML');
+  return treeFileIcon('#64748b', '');
+}
+
+const EMPTY_PREVIEW_ICON = '<svg viewBox="0 0 64 64" width="64" height="64" aria-hidden="true"><rect x="14" y="8" width="36" height="48" rx="4" fill="currentColor" opacity=".08"/><path d="M18 8h20l12 12v32a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M38 8v12h12M22 32h20M22 39h20M22 46h12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 function iconFor(node) {
   if (node.type === 'client') return '👶';
@@ -3458,7 +3482,7 @@ function renderNotes(node, notes, history) {
   $('preview').innerHTML = `
     <div class="preview-header">
       <div class="preview-title">Client Notes — ${escapeHTML(clientNameFor(node.path))}</div>
-      <button id="saveNotesBtn" class="primary">💾 Save Notes</button>
+      <button id="saveNotesBtn" class="primary">Save Notes</button>
     </div>
     <div class="preview-body client-notes-view">
       <div class="notes-toolbar" aria-label="Notes formatting toolbar">
@@ -3681,7 +3705,7 @@ async function renderPreview(p) {
       <div class="preview-header"><div class="preview-title">${escapeHTML(p.name)}</div>${pdfHeaderActions}</div>
       <div class="pdf-searchbar">
         <input id="pdfSearchInput" type="search" placeholder="Search this PDF… (Ctrl+F)" aria-label="Search this PDF" />
-        <button id="pdfSearchBtn" class="primary">🔍 Search</button>
+        <button id="pdfSearchBtn" class="primary">Search</button>
         <button id="pdfMatchPrev" title="Previous match" disabled>▲</button>
         <button id="pdfMatchNext" title="Next match" disabled>▼</button>
         <span id="pdfSearchStatus">Ctrl+F to search</span>
@@ -4806,7 +4830,7 @@ function clearPreview() {
   $('selectionClientName').textContent = '—';
   $('selectionReturnType').textContent = '—';
   $('preview').className = 'preview-empty';
-  $('preview').innerHTML = '<div class="empty-icon">📄</div><h2>Document Preview</h2><p>Select a PDF, Word, Excel, email, image, CSV, text file, or notes.txt from the Work Space.</p>';
+  $('preview').innerHTML = '<div class="empty-icon">' + EMPTY_PREVIEW_ICON + '</div><h2>Document Preview</h2><p>Select a PDF, Word, Excel, email, image, CSV, text file, or notes.txt from the Work Space.</p>';
 }
 
 async function call(fn) {

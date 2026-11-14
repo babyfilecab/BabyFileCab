@@ -113,7 +113,7 @@
       <div class="menu-root">
         <button class="menu-trigger" type="button" data-menu="helpMenu">Help</button>
         <div class="menu-dropdown hidden" id="helpMenu" role="menu">
-          <button type="button" data-menu-action="open-data-folder">📁 Open Data Folder</button>
+          <button type="button" data-menu-action="open-data-folder">Open Data Folder</button>
           <div class="menu-separator"></div>
           <button type="button" data-menu-action="how-to-use">How to Use BabyFileCab</button>
           <button type="button" data-menu-action="user-manual">User Manual <span class="menu-shortcut">F1</span></button>
@@ -133,6 +133,7 @@
         </div>
       </div>
       <div class="header-actions">
+        <div class="signed-in-avatar" id="signedInAvatar" aria-hidden="true"></div>
         <div class="signed-in-user">
           <div id="signedInName" class="signed-in-name"></div>
           <div id="signedInRole" class="signed-in-role"></div>
@@ -204,7 +205,7 @@
 
         <div class="preview-shell">
           <div id="preview" class="preview-empty">
-            <div class="empty-icon">📄</div>
+            <div class="empty-icon"><svg viewBox="0 0 64 64" width="64" height="64" aria-hidden="true"><rect x="14" y="8" width="36" height="48" rx="4" fill="currentColor" opacity=".08"/><path d="M18 8h20l12 12v32a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M38 8v12h12M22 32h20M22 39h20M22 46h12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
             <h2>Document Preview</h2>
             <p>Select a PDF, Word, Excel, email, image, CSV, text file, or notes.txt from the tree.</p>
           </div>
