@@ -63,18 +63,6 @@ func (a *App) saveBackupSettings(s BackupSettings) error {
 	return a.metadataJSONPut("settings", "auto-backup", s)
 }
 
-func (a *App) requireAdministrator() error {
-	if err := a.requireSignedIn(); err != nil {
-		return err
-	}
-	a.authMu.RLock()
-	defer a.authMu.RUnlock()
-	if a.currentUser == nil || a.currentUser.Role != "administrator" {
-		return errors.New("only an administrator can change backup settings")
-	}
-	return nil
-}
-
 func (a *App) GetBackupSettings() (BackupSettings, error) {
 	if err := a.requireSignedIn(); err != nil {
 		return BackupSettings{}, err
@@ -83,7 +71,7 @@ func (a *App) GetBackupSettings() (BackupSettings, error) {
 }
 
 func (a *App) ChooseBackupFolder() (string, error) {
-	if err := a.requireAdministrator(); err != nil {
+	if err := a.requireAdministrator("change backup settings"); err != nil {
 		return "", err
 	}
 	folder, err := wailsruntime.OpenDirectoryDialog(a.ctx, wailsruntime.OpenDialogOptions{Title: "Choose where to save BabyFileCab backups"})
@@ -94,7 +82,7 @@ func (a *App) ChooseBackupFolder() (string, error) {
 }
 
 func (a *App) SaveBackupSettings(folder, frequency string, keep int) (BackupSettings, error) {
-	if err := a.requireAdministrator(); err != nil {
+	if err := a.requireAdministrator("change backup settings"); err != nil {
 		return BackupSettings{}, err
 	}
 	s := a.loadBackupSettings()

@@ -232,6 +232,109 @@ export namespace main {
 	        this.outputPath = source["outputPath"];
 	    }
 	}
+	export class EngagementPlaceholder {
+	    name: string;
+	    meaning: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EngagementPlaceholder(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.meaning = source["meaning"];
+	    }
+	}
+	export class EngagementTemplateSection {
+	    title: string;
+	    body: string;
+	    appliesTo: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EngagementTemplateSection(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.title = source["title"];
+	        this.body = source["body"];
+	        this.appliesTo = source["appliesTo"];
+	    }
+	}
+	export class EngagementTemplate {
+	    intro: string;
+	    sections: EngagementTemplateSection[];
+	    closing: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EngagementTemplate(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.intro = source["intro"];
+	        this.sections = this.convertValues(source["sections"], EngagementTemplateSection);
+	        this.closing = source["closing"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class EngagementTemplateInfo {
+	    template: EngagementTemplate;
+	    default: EngagementTemplate;
+	    custom: boolean;
+	    placeholders: EngagementPlaceholder[];
+	    notIncluded: Record<string, string>;
+	
+	    static createFrom(source: any = {}) {
+	        return new EngagementTemplateInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.template = this.convertValues(source["template"], EngagementTemplate);
+	        this.default = this.convertValues(source["default"], EngagementTemplate);
+	        this.custom = source["custom"];
+	        this.placeholders = this.convertValues(source["placeholders"], EngagementPlaceholder);
+	        this.notIncluded = source["notIncluded"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
 	export class ExistingCompanyUserRegistration {
 	    companyId: string;
 	    adminUsername: string;
@@ -306,6 +409,24 @@ export namespace main {
 	        this.preparerUsername = source["preparerUsername"];
 	    }
 	}
+	export class FirmService {
+	    code: string;
+	    label: string;
+	    description: string;
+	    kind: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FirmService(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.code = source["code"];
+	        this.label = source["label"];
+	        this.description = source["description"];
+	        this.kind = source["kind"];
+	    }
+	}
 	export class GlobalSearchResult {
 	    name: string;
 	    path: string;
@@ -346,6 +467,60 @@ export namespace main {
 	        this.modified = source["modified"];
 	    }
 	}
+	export class InvoiceLineInput {
+	    description: string;
+	    quantity: number;
+	    rate: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new InvoiceLineInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.description = source["description"];
+	        this.quantity = source["quantity"];
+	        this.rate = source["rate"];
+	    }
+	}
+	export class InvoiceRecord {
+	    number: string;
+	    clientId: string;
+	    clientName: string;
+	    clientPath?: string;
+	    service: string;
+	    taxYear: string;
+	    invoiceDate: string;
+	    dueDate: string;
+	    total: number;
+	    paid: boolean;
+	    paidDate?: string;
+	    files?: string[];
+	    createdBy: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new InvoiceRecord(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.number = source["number"];
+	        this.clientId = source["clientId"];
+	        this.clientName = source["clientName"];
+	        this.clientPath = source["clientPath"];
+	        this.service = source["service"];
+	        this.taxYear = source["taxYear"];
+	        this.invoiceDate = source["invoiceDate"];
+	        this.dueDate = source["dueDate"];
+	        this.total = source["total"];
+	        this.paid = source["paid"];
+	        this.paidDate = source["paidDate"];
+	        this.files = source["files"];
+	        this.createdBy = source["createdBy"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class InvoiceRequest {
 	    clientPath: string;
 	    preparerUsername: string;
@@ -354,12 +529,10 @@ export namespace main {
 	    invoiceNumber: string;
 	    invoiceDate: string;
 	    dueDate: string;
-	    feeType: string;
-	    feeValue: string;
-	    hours: string;
-	    description: string;
+	    lines: InvoiceLineInput[];
 	    notes: string;
 	    outputPath: string;
+	    timeEntryIds: string[];
 	
 	    static createFrom(source: any = {}) {
 	        return new InvoiceRequest(source);
@@ -374,13 +547,29 @@ export namespace main {
 	        this.invoiceNumber = source["invoiceNumber"];
 	        this.invoiceDate = source["invoiceDate"];
 	        this.dueDate = source["dueDate"];
-	        this.feeType = source["feeType"];
-	        this.feeValue = source["feeValue"];
-	        this.hours = source["hours"];
-	        this.description = source["description"];
+	        this.lines = this.convertValues(source["lines"], InvoiceLineInput);
 	        this.notes = source["notes"];
 	        this.outputPath = source["outputPath"];
+	        this.timeEntryIds = source["timeEntryIds"];
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class NotesDocument {
 	    text: string;
@@ -458,6 +647,7 @@ export namespace main {
 	    hours: number;
 	    username: string;
 	    createdAt: string;
+	    invoiceNumber?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new TimeSheetEntry(source);
@@ -474,6 +664,7 @@ export namespace main {
 	        this.hours = source["hours"];
 	        this.username = source["username"];
 	        this.createdAt = source["createdAt"];
+	        this.invoiceNumber = source["invoiceNumber"];
 	    }
 	}
 	export class TreeNode {

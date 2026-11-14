@@ -335,6 +335,9 @@ func (a *App) RenameClient(path, newName string) (string, error) {
 }
 
 func (a *App) DeleteClient(path string) error {
+	if err := a.requireAdministrator("delete a client"); err != nil {
+		return err
+	}
 	path, err := a.requireType(path, "client")
 	if err != nil {
 		return err

@@ -49,7 +49,7 @@
           <div class="menu-separator"></div>
           <button type="button" data-menu-action="edit-client-picker">Edit Client…</button>
           <button type="button" data-menu-action="rename-client-picker">Rename Client…</button>
-          <button type="button" data-menu-action="delete-client-picker" class="menu-danger">Delete Client…</button>
+          <button type="button" data-menu-action="delete-client-picker" class="menu-danger admin-only">Delete Client…</button>
           <button type="button" data-menu-action="recycle-bin">Recycle Bin…</button>
           <button type="button" data-menu-action="scan-inbox">Scan Inbox…</button>
           <div class="menu-separator"></div>
@@ -110,6 +110,7 @@
           <button type="button" data-menu-action="needs-attention">Needs Attention…</button>
           <button type="button" data-menu-action="engagement-letter">Engagement Letter Generator…</button>
           <button type="button" data-menu-action="create-invoice">Create an Invoice…</button>
+          <button type="button" data-menu-action="invoice-list">Invoices…</button>
           <button type="button" data-menu-action="currency-converter">Currency Converter (IRS)…</button>
           <button type="button" data-menu-action="app-audit-trail">Audit Trail…</button>
         </div>
@@ -185,7 +186,7 @@
               <div class="toolbar-group-actions">
                 <button data-action="add-client" title="Add Client (C)" aria-label="Add Client">Add</button>
                 <button data-action="edit-client" title="Edit Client (Shift+C)" aria-label="Edit Client">Edit</button>
-                <button data-action="delete-client" title="Delete Client" aria-label="Delete Client">Delete</button>
+                <button class="admin-only" data-action="delete-client" title="Delete Client" aria-label="Delete Client">Delete</button>
               </div>
             </div>
 
@@ -319,13 +320,6 @@
   <div id="firmCalendarContextMenu" class="context-menu hidden" role="menu" aria-label="Firm Calendar client menu">
     <div id="firmCalendarContextLabel" class="context-menu-label"></div>
     <button type="button" data-calendar-context-action="status-clear">Clear Status</button>
-    <button type="button" data-calendar-context-action="status-drafting">Drafting</button>
-    <button type="button" data-calendar-context-action="status-waiting-on-reports">Waiting on reports</button>
-    <button type="button" data-calendar-context-action="status-8879-sent">8879 Sent</button>
-    <button type="button" data-calendar-context-action="status-waiting-for-signature">Waiting for Signature</button>
-    <button type="button" data-calendar-context-action="status-signed">Signed</button>
-    <button type="button" data-calendar-context-action="status-ready-to-e-file">Ready to E-file</button>
-    <button type="button" data-calendar-context-action="status-completed">Completed</button>
     <div class="context-separator"></div>
     <button type="button" data-calendar-context-action="reassign-preparer">Reassign To Preparer…</button>
     <button type="button" data-calendar-context-action="reassign">Reassign to New Date…</button>
@@ -915,9 +909,12 @@
         <div>
           <span class="auth-eyebrow">TOOLS • CPA FIRM ENGAGEMENT LETTER</span>
           <h2 id="engagementLetterTitle">Engagement Letter Generator</h2>
-          <p>Select the client, preparer, service, tax year, and fee. BabyFileCab builds the finished engagement letter below.</p>
+          <p>Select the client, preparer, service, tax year, and fee. BabyFileCab builds the finished engagement letter below and saves it in the client's folder.</p>
         </div>
-        <button id="engagementLetterCloseTop" class="secondary" type="button">Close</button>
+        <div class="engagement-heading-buttons">
+          <button id="engagementEditWording" class="secondary admin-only" type="button">Edit Letter Wording…</button>
+          <button id="engagementLetterCloseTop" class="secondary" type="button">Close</button>
+        </div>
       </div>
 
       <div class="engagement-letter-scroll engagement-rebuilt-scroll">
@@ -966,13 +963,6 @@
             <div class="engagement-control-stack">
               <select id="engagementService">
                 <option value="">Select a service…</option>
-                <option value="1040">1040</option>
-                <option value="1041">1041</option>
-                <option value="1065">1065</option>
-                <option value="1120S">1120S</option>
-                <option value="1120">1120</option>
-                <option value="Bookkeeping">Bookkeeping</option>
-                <option value="Tax Projection">Tax Projection</option>
               </select>
             </div>
           </div>
@@ -1047,15 +1037,50 @@
   </div>
 
 
+
+  <div id="engagementWordingBackdrop" class="modal-backdrop hidden">
+    <div class="modal wording-modal" role="dialog" aria-modal="true" aria-labelledby="wordingTitle">
+      <div class="needs-attention-head">
+        <div>
+          <h2 id="wordingTitle">Engagement Letter Wording</h2>
+          <p>This wording is used for every engagement letter the firm creates. Words in braces are filled in for each letter.</p>
+        </div>
+        <button id="wordingCloseTop" class="secondary" type="button">Close</button>
+      </div>
+      <div class="wording-scroll">
+        <details class="wording-help">
+          <summary>Placeholders you can use</summary>
+          <ul id="wordingPlaceholders"></ul>
+        </details>
+        <label class="wording-label" for="wordingIntro">Opening paragraph</label>
+        <textarea id="wordingIntro" rows="4"></textarea>
+        <div class="wording-label">Sections</div>
+        <div id="wordingSections"></div>
+        <button id="wordingAddSection" class="secondary" type="button">＋ Add Section</button>
+        <label class="wording-label" for="wordingClosing">Closing paragraph</label>
+        <textarea id="wordingClosing" rows="3"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button id="wordingReset" class="secondary" type="button" style="margin-right:auto">Use Standard Wording</button>
+        <button id="wordingCancel" class="secondary" type="button">Cancel</button>
+        <button id="wordingSave" class="primary" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
+
   <div id="invoiceBackdrop" class="modal-backdrop hidden">
     <div class="modal engagement-letter-modal engagement-letter-rebuilt invoice-modal" role="dialog" aria-modal="true" aria-labelledby="invoiceTitle">
       <div class="engagement-letter-heading">
         <div>
           <span class="auth-eyebrow">TOOLS • CLIENT INVOICE</span>
           <h2 id="invoiceTitle">Create an Invoice</h2>
-          <p>Select the client and service, enter the billing information, preview the invoice, then generate a PDF or Microsoft Word document.</p>
+          <p>Select the client and service, add the charges, preview the invoice, then generate a PDF or Microsoft Word document. It is saved in the client's folder and added to the Invoices list.</p>
         </div>
-        <button id="invoiceCloseTop" class="secondary" type="button">Close</button>
+        <div class="engagement-heading-buttons">
+          <button id="invoiceShowList" class="secondary" type="button">Invoices…</button>
+          <button id="invoiceCloseTop" class="secondary" type="button">Close</button>
+        </div>
       </div>
 
       <div class="invoice-scroll-area">
@@ -1105,13 +1130,6 @@
             <div class="engagement-control-stack">
               <select id="invoiceService">
                 <option value="">Select a service…</option>
-                <option value="1040">1040</option>
-                <option value="1041">1041</option>
-                <option value="1065">1065</option>
-                <option value="1120S">1120S</option>
-                <option value="1120">1120</option>
-                <option value="Bookkeeping">Bookkeeping</option>
-                <option value="Tax Projection">Tax Projection</option>
               </select>
             </div>
           </div>
@@ -1131,6 +1149,7 @@
             <label for="invoiceNumber">Invoice Number</label>
             <div class="engagement-control-stack">
               <input id="invoiceNumber" type="text" autocomplete="off" placeholder="INV-2026-0001" />
+              <small>The next number in order is filled in for you.</small>
             </div>
           </div>
 
@@ -1149,36 +1168,15 @@
           </div>
 
           <div class="engagement-rebuilt-row">
-            <label for="invoiceFeeType">Fee Arrangement</label>
+            <label>Invoice Lines</label>
             <div class="engagement-control-stack">
-              <select id="invoiceFeeType">
-                <option value="Flat Fee">Flat Fee</option>
-                <option value="Hourly Rate">Hourly Rate</option>
-              </select>
-            </div>
-          </div>
-
-          <div id="invoiceHoursRow" class="engagement-rebuilt-row hidden">
-            <label for="invoiceHours">Hours</label>
-            <div class="engagement-control-stack">
-              <input id="invoiceHours" type="number" min="0.01" step="0.25" inputmode="decimal" placeholder="1.00" />
-            </div>
-          </div>
-
-          <div class="engagement-rebuilt-row">
-            <label id="invoiceFeeLabel" for="invoiceFeeValue">Flat Fee (USD $)</label>
-            <div class="engagement-control-stack">
-              <div class="engagement-money-input">
-                <span aria-hidden="true">$</span>
-                <input id="invoiceFeeValue" type="text" inputmode="decimal" autocomplete="off" placeholder="1,500.00" aria-label="Invoice fee in US dollars" />
+              <div class="invoice-lines-head" aria-hidden="true"><span>Description</span><span>Qty / hours</span><span>Rate (USD $)</span><span>Amount</span><span></span></div>
+              <div id="invoiceLines" class="invoice-lines"></div>
+              <div class="invoice-line-buttons">
+                <button id="invoiceAddLine" class="secondary" type="button">＋ Add Line</button>
+                <button id="invoiceAddTime" class="secondary" type="button">Add Hours from Time Sheet…</button>
               </div>
-            </div>
-          </div>
-
-          <div class="engagement-rebuilt-row">
-            <label for="invoiceDescription">Description</label>
-            <div class="engagement-control-stack">
-              <input id="invoiceDescription" type="text" autocomplete="off" placeholder="Optional description shown on the invoice" />
+              <small id="invoiceLinesSummary">Add a line for each service or charge.</small>
             </div>
           </div>
 
@@ -1234,7 +1232,7 @@
 
       <div class="tax-calculator-scroll">
         <div class="tax-calculator-notice">
-          <strong>Estimate only.</strong> This calculator is designed for quick planning. It now estimates the Child Tax Credit, the earned-income method of the Additional Child Tax Credit, and equal quarterly estimated-tax installments after expected federal withholding. It does not calculate the prior-year safe-harbor method, annualized-income installments, or other credits, itemized deductions, QBI, AMT, NIIT, foreign tax items, dependent/age/blind standard-deduction adjustments, or special deductions for tips, overtime, seniors, or auto-loan interest.
+          <strong>Estimate only.</strong> For quick planning. It covers the standard or itemized deduction (with the extra amount for age 65+ and blindness), the 2025–2028 senior, tips and overtime deductions, the QBI deduction for self-employment income, qualified dividends, the Net Investment Income Tax, the Child Tax Credit and credit for other dependents, and quarterly estimates including the prior-year safe harbor. It does not cover AMT, education or energy credits, the earned income credit, K-1 business income, foreign items, the car-loan interest deduction, or the annualized-income method.
         </div>
 
         <section class="tax-calculator-section">
@@ -1273,8 +1271,14 @@
               <small>Enter net Schedule C/F self-employment profit or loss.</small>
             </label>
             <label class="tax-field">
-              <span>Taxable interest income</span>
+              <span>Taxable interest and ordinary dividends</span>
               <div class="money-input"><span>$</span><input id="taxInterest" inputmode="decimal" value="0" /></div>
+              <small>Leave out the qualified part of dividends; enter it below.</small>
+            </label>
+            <label class="tax-field">
+              <span>Qualified dividends</span>
+              <div class="money-input"><span>$</span><input id="taxQualifiedDividends" inputmode="decimal" value="0" /></div>
+              <small>Taxed at the 0% / 15% / 20% capital-gain rates (1099-DIV box 1b).</small>
             </label>
             <label class="tax-field">
               <span>Short-term capital gain / (loss)</span>
@@ -1296,15 +1300,67 @@
         </section>
 
         <section class="tax-calculator-section">
-          <h3>Child Tax Credit</h3>
+          <h3>Deductions</h3>
           <div class="tax-input-grid">
-            <label class="tax-field tax-field-wide">
-              <span>Qualifying children under age 17</span>
-              <input id="taxQualifyingChildren" type="number" min="0" step="1" value="0" inputmode="numeric" />
-              <small>Enter children who meet the Child Tax Credit rules, including the required Social Security number rules. BabyFileCab assumes the taxpayer otherwise qualifies.</small>
+            <label class="tax-field">
+              <span>Itemized deductions (Schedule A total)</span>
+              <div class="money-input"><span>$</span><input id="taxItemized" inputmode="decimal" value="0" /></div>
+              <small>Used only if larger than the standard deduction.</small>
+            </label>
+            <label class="tax-field">
+              <span>People age 65 or older</span>
+              <input id="taxAge65" type="number" min="0" max="2" step="1" value="0" inputmode="numeric" />
+              <small>Taxpayer and spouse (0–2). Adds to the standard deduction and, for 2025–2028, the $6,000 senior deduction.</small>
+            </label>
+            <label class="tax-field">
+              <span>People who are blind</span>
+              <input id="taxBlind" type="number" min="0" max="2" step="1" value="0" inputmode="numeric" />
+              <small>Taxpayer and spouse (0–2).</small>
+            </label>
+            <label class="tax-field" id="taxTipsField">
+              <span>Qualified tips</span>
+              <div class="money-input"><span>$</span><input id="taxTips" inputmode="decimal" value="0" /></div>
+              <small>Up to $25,000, 2025–2028. Phases out above $150,000 MAGI ($300,000 joint).</small>
+            </label>
+            <label class="tax-field" id="taxOvertimeField">
+              <span>Qualified overtime premium</span>
+              <div class="money-input"><span>$</span><input id="taxOvertime" inputmode="decimal" value="0" /></div>
+              <small>The "half" in time-and-a-half only. Up to $12,500 ($25,000 joint), 2025–2028.</small>
             </label>
           </div>
-          <p class="tax-negative-hint">For both 2025 and 2026, the maximum CTC is <strong>$2,200 per qualifying child</strong>, with up to <strong>$1,700 per child</strong> potentially refundable as the Additional Child Tax Credit. The credit begins phasing out above $400,000 for married filing jointly and $200,000 for other filing statuses.</p>
+          <p class="tax-negative-hint">The QBI deduction is worked out from self-employment income automatically.</p>
+        </section>
+
+        <section class="tax-calculator-section">
+          <h3>Child Tax Credit and other dependents</h3>
+          <div class="tax-input-grid">
+            <label class="tax-field">
+              <span>Qualifying children under age 17</span>
+              <input id="taxQualifyingChildren" type="number" min="0" step="1" value="0" inputmode="numeric" />
+              <small>Children who meet the Child Tax Credit rules, including the Social Security number rules.</small>
+            </label>
+            <label class="tax-field">
+              <span>Other dependents</span>
+              <input id="taxOtherDependents" type="number" min="0" step="1" value="0" inputmode="numeric" />
+              <small>For example children 17 or older or a parent you support ($500 credit each).</small>
+            </label>
+          </div>
+          <p id="taxCTCHint" class="tax-negative-hint"></p>
+        </section>
+
+        <section class="tax-calculator-section">
+          <h3>Last year (for the safe harbor)</h3>
+          <div class="tax-input-grid">
+            <label class="tax-field">
+              <span>Last year's total tax</span>
+              <div class="money-input"><span>$</span><input id="taxPriorYearTax" inputmode="decimal" value="0" /></div>
+              <small>Form 1040 "total tax" line from last year's return. Leave at 0 if unknown.</small>
+            </label>
+            <label class="tax-field tax-checkbox-field">
+              <span>Last year's AGI was over $150,000</span>
+              <span class="tax-checkbox-row"><input id="taxPriorYearHighIncome" type="checkbox" /> Over $75,000 if married filing separately. Uses 110% of last year's tax.</span>
+            </label>
+          </div>
         </section>
 
         <div class="tax-calculator-button-row">
@@ -1316,27 +1372,33 @@
           <div class="tax-result-hero">
             <span id="taxResultYearLabel">Estimated 2025 federal tax</span>
             <strong id="taxResultTotal">$0</strong>
-            <small>Income tax after estimated CTC + self-employment tax + estimated Additional Medicare Tax − estimated refundable ACTC. Withholding is shown separately below and is used to estimate the remaining quarterly payments.</small>
+            <small>Income tax after credits + self-employment tax + Additional Medicare Tax + Net Investment Income Tax − refundable ACTC. Withholding is shown separately below and is used to estimate the remaining quarterly payments.</small>
           </div>
+          <div id="taxResultNotes" class="tax-result-notes hidden"></div>
 
           <div class="tax-result-cards">
             <div class="tax-result-card"><span>Adjusted gross income</span><strong id="taxResultAGI">$0</strong></div>
-            <div class="tax-result-card"><span>Standard deduction</span><strong id="taxResultStandardDeduction">$0</strong></div>
+            <div class="tax-result-card"><span id="taxResultDeductionLabel">Standard deduction</span><strong id="taxResultStandardDeduction">$0</strong></div>
             <div class="tax-result-card"><span>Taxable income</span><strong id="taxResultTaxableIncome">$0</strong></div>
             <div class="tax-result-card"><span>Marginal ordinary bracket</span><strong id="taxResultMarginalRate">0%</strong></div>
           </div>
 
           <div class="tax-breakdown">
             <h3>Tax breakdown</h3>
+            <div class="tax-breakdown-row tax-breakdown-muted"><span>Senior deduction</span><strong id="taxResultSeniorDeduction">$0</strong></div>
+            <div class="tax-breakdown-row tax-breakdown-muted"><span>Tips deduction</span><strong id="taxResultTipsDeduction">$0</strong></div>
+            <div class="tax-breakdown-row tax-breakdown-muted"><span>Overtime deduction</span><strong id="taxResultOvertimeDeduction">$0</strong></div>
+            <div class="tax-breakdown-row tax-breakdown-muted"><span>QBI deduction</span><strong id="taxResultQBI">$0</strong></div>
             <div class="tax-breakdown-row"><span>Ordinary income tax</span><strong id="taxResultOrdinaryTax">$0</strong></div>
             <div class="tax-breakdown-row"><span>Long-term capital gains tax</span><strong id="taxResultCapitalTax">$0</strong></div>
             <div class="tax-breakdown-row"><span>Income tax before credits</span><strong id="taxResultIncomeTaxBeforeCredits">$0</strong></div>
-            <div class="tax-breakdown-row tax-breakdown-muted"><span>Maximum Child Tax Credit before phaseout</span><strong id="taxResultCTCMaximum">$0</strong></div>
+            <div class="tax-breakdown-row tax-breakdown-muted"><span>Maximum child and dependent credit before phaseout</span><strong id="taxResultCTCMaximum">$0</strong></div>
             <div class="tax-breakdown-row tax-breakdown-muted"><span>CTC phaseout reduction</span><strong id="taxResultCTCPhaseout">$0</strong></div>
-            <div class="tax-breakdown-row"><span>Child Tax Credit used (nonrefundable)</span><strong id="taxResultCTC">$0</strong></div>
+            <div class="tax-breakdown-row"><span>Child Tax Credit and other dependent credit used</span><strong id="taxResultCTC">$0</strong></div>
             <div class="tax-breakdown-row"><span>Income tax after Child Tax Credit</span><strong id="taxResultIncomeTaxAfterCTC">$0</strong></div>
             <div class="tax-breakdown-row"><span>Self-employment tax</span><strong id="taxResultSETax">$0</strong></div>
             <div class="tax-breakdown-row"><span>Additional Medicare Tax</span><strong id="taxResultAdditionalMedicare">$0</strong></div>
+            <div class="tax-breakdown-row"><span>Net Investment Income Tax (3.8%)</span><strong id="taxResultNIIT">$0</strong></div>
             <div class="tax-breakdown-row"><span>Additional Child Tax Credit (refundable estimate)</span><strong id="taxResultACTC">$0</strong></div>
             <div class="tax-breakdown-row"><span>Expected federal income tax withholding</span><strong id="taxResultFederalWithholding">$0</strong></div>
             <div class="tax-breakdown-row"><span>Projected tax remaining after withholding</span><strong id="taxResultEstimatedTaxToCover">$0</strong></div>
@@ -1371,6 +1433,10 @@
               <div class="tax-quarter-card"><span>3rd payment</span><strong id="taxQuarter3Amount">$0</strong><small id="taxQuarter3Date">September 15, 2025</small></div>
               <div class="tax-quarter-card"><span>4th payment</span><strong id="taxQuarter4Amount">$0</strong><small id="taxQuarter4Date">January 15, 2026</small></div>
             </div>
+            <div class="tax-safe-harbor">
+              <div><strong>Safe-harbor minimum each quarter</strong><span id="taxResultSafeHarborNote"></span></div>
+              <strong id="taxResultSafeHarbor">$0</strong>
+            </div>
             <div class="tax-quarterly-note">
               <p><strong>Planning note:</strong> These are four equal installments of the projected tax remaining after withholding. The actual amount required to avoid an underpayment penalty can differ under Form 1040-ES because of prior-year safe-harbor rules, the timing of income, withholding, credits, or the annualized-income method.</p>
               <button id="taxIRSPaymentButton" class="primary" type="button">Pay Federal Tax on IRS.gov</button>
@@ -1396,23 +1462,32 @@
     <div class="modal currency-converter-modal" role="dialog" aria-modal="true" aria-labelledby="currencyConverterTitle">
       <div class="currency-converter-heading">
         <div>
-          <span class="auth-eyebrow">TOOLS • IRS YEARLY AVERAGE RATES</span>
+          <span id="currencyConverterEyebrow" class="auth-eyebrow">TOOLS • IRS YEARLY AVERAGE RATES</span>
           <h2 id="currencyConverterTitle">USD Currency Converter</h2>
-          <p>Convert between U.S. dollars and currencies listed in the IRS yearly-average exchange-rate table.</p>
+          <p>Convert between U.S. dollars and foreign currencies using the IRS yearly-average rates or the Treasury's December 31 rates.</p>
         </div>
         <button id="currencyConverterCloseTop" class="secondary" type="button">Close</button>
       </div>
 
       <div class="currency-converter-scroll">
         <div class="currency-converter-notice">
-          <strong>Tax-use note.</strong> The IRS states that it has no official exchange rate and generally accepts a posted exchange rate used consistently. For a specific transaction, the spot rate that applies when the item is received, paid, or accrued may be appropriate. This tool uses only the IRS yearly-average table shown on the referenced IRS page.
+          <strong>Tax-use note.</strong> The IRS states that it has no official exchange rate and generally accepts a posted exchange rate used consistently. For a specific transaction, the spot rate that applies when the item is received, paid, or accrued may be appropriate. Use yearly-average rates for income and expenses during the year, and the Treasury's December 31 rates for FBAR and Form 8938 account balances.
         </div>
 
         <div class="currency-converter-grid">
+          <label class="currency-converter-field currency-converter-field-wide">
+            <span>Rate to use</span>
+            <select id="currencyConverterRateType">
+              <option value="average" selected>IRS yearly average (income and expenses)</option>
+              <option value="year-end">Treasury December 31 rate (FBAR, Form 8938 balances)</option>
+            </select>
+            <small id="currencyConverterRateTypeHint">For income and expenses received or paid during the year.</small>
+          </label>
+
           <label class="currency-converter-field">
             <span>Rate year</span>
             <select id="currencyConverterYear"></select>
-            <small>Years appear here once the IRS publishes its yearly-average table.</small>
+            <small>New years appear once the IRS or Treasury publishes them.</small>
           </label>
 
           <label class="currency-converter-field">
@@ -1444,7 +1519,7 @@
           <span id="currencyConverterResultLabel">Converted amount</span>
           <strong id="currencyConverterResult">$0.00</strong>
           <div class="currency-converter-rate-row">
-            <span>IRS yearly-average rate</span>
+            <span id="currencyConverterRateName">IRS yearly-average rate</span>
             <strong id="currencyConverterRateDisplay">—</strong>
           </div>
           <p id="currencyConverterFormula">Choose a currency and enter an amount.</p>
@@ -1452,8 +1527,8 @@
 
         <div class="currency-converter-source">
           <div>
-            <strong>IRS source</strong>
-            <p>Yearly average currency exchange rates — Internal Revenue Service</p>
+            <strong>Source</strong>
+            <p id="currencyConverterSourceText">Yearly average currency exchange rates — Internal Revenue Service</p>
           </div>
           <button id="currencyConverterOpenIRS" class="secondary" type="button">Open IRS Rate Table</button>
         </div>
@@ -1595,7 +1670,7 @@
         <div>
           <span class="auth-eyebrow">WORKFLOW • TIME TRACKING</span>
           <h2 id="timeSheetTitle">Time Sheet</h2>
-          <p>Record the time you worked on each client by calendar date.</p>
+          <p>Record the time you worked on each client by calendar date. Hours can be pulled onto an invoice later.</p>
         </div>
         <button id="timeSheetCloseTop" class="secondary" type="button">Close</button>
       </div>
@@ -1621,13 +1696,31 @@
         <div class="time-sheet-entry-actions"><button id="timeSheetAdd" class="primary time-sheet-add" type="button">Add Time</button><button id="timeSheetCancelEdit" class="secondary hidden" type="button">Cancel Edit</button></div>
       </div>
       <div id="timeSheetDateStatus" class="time-sheet-date-status"></div>
+      <div class="time-sheet-view-bar">
+        <label>Show
+          <select id="timeSheetPeriod">
+            <option value="day">Selected day</option>
+            <option value="week">Week of selected day</option>
+            <option value="month">Month of selected day</option>
+            <option value="year">Year of selected day</option>
+          </select>
+        </label>
+        <label class="admin-only">Person
+          <select id="timeSheetPerson"></select>
+        </label>
+        <label>Client
+          <select id="timeSheetClientFilter"><option value="">All clients</option></select>
+        </label>
+        <button id="timeSheetExport" class="secondary" type="button">Export to Spreadsheet…</button>
+      </div>
       <div class="time-sheet-summary">
         <strong id="timeSheetTotal">0.00 hours</strong>
         <span id="timeSheetUser"></span>
       </div>
+      <div id="timeSheetClientTotals" class="time-sheet-client-totals"></div>
       <div class="time-sheet-table-wrap">
         <table class="time-sheet-table">
-          <thead><tr><th>Date</th><th>Client</th><th>Work performed</th><th>Hours</th><th></th></tr></thead>
+          <thead><tr><th>Date</th><th class="time-sheet-person-col">Preparer</th><th>Client</th><th>Work performed</th><th>Hours</th><th>Billed</th><th></th></tr></thead>
           <tbody id="timeSheetRows"></tbody>
         </table>
         <div id="timeSheetEmpty" class="time-sheet-empty hidden">No time has been entered yet.</div>
@@ -1724,7 +1817,8 @@
       <ul id="recycleBinList" class="needs-attention-list"></ul>
       <p id="recycleBinEmpty" class="recycle-bin-empty hidden">The Recycle Bin is empty.</p>
       <div class="modal-actions">
-        <button id="recycleBinEmptyAll" class="danger" type="button" style="margin-right:auto">Empty Recycle Bin</button>
+        <button id="recycleBinEmptyAll" class="danger admin-only" type="button" style="margin-right:auto">Empty Recycle Bin</button>
+        <p class="staff-only recycle-bin-staff-note">Only an administrator can delete items permanently.</p>
         <button id="recycleBinClose" class="primary" type="button">Done</button>
       </div>
     </div>
@@ -1775,6 +1869,59 @@
   </div>
 
   <div id="toast" class="toast hidden"></div>
+  <div id="invoiceTimeBackdrop" class="modal-backdrop hidden">
+    <div class="modal invoice-time-modal" role="dialog" aria-modal="true" aria-labelledby="invoiceTimeTitle">
+      <div class="needs-attention-head">
+        <div>
+          <h2 id="invoiceTimeTitle">Add Hours from Time Sheet</h2>
+          <p id="invoiceTimeSummary">Hours entered for this client that haven't been billed yet.</p>
+        </div>
+      </div>
+      <div class="invoice-time-rate">
+        <label for="invoiceTimeRate">Hourly rate (USD $)</label>
+        <div class="engagement-money-input"><span aria-hidden="true">$</span><input id="invoiceTimeRate" type="text" inputmode="decimal" placeholder="150.00" /></div>
+        <label class="invoice-time-combine"><input id="invoiceTimeCombine" type="checkbox" /> Combine into one line</label>
+      </div>
+      <ul id="invoiceTimeList" class="invoice-time-list"></ul>
+      <p id="invoiceTimeEmpty" class="recycle-bin-empty hidden">There are no unbilled hours for this client.</p>
+      <div class="modal-actions">
+        <button id="invoiceTimeCancel" class="secondary" type="button">Cancel</button>
+        <button id="invoiceTimeAdd" class="primary" type="button">Add to Invoice</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="invoiceListBackdrop" class="modal-backdrop hidden">
+    <div class="modal invoice-list-modal" role="dialog" aria-modal="true" aria-labelledby="invoiceListTitle">
+      <div class="needs-attention-head">
+        <div>
+          <h2 id="invoiceListTitle">Invoices</h2>
+          <p id="invoiceListSummary">Every invoice the firm has created.</p>
+        </div>
+        <button id="invoiceListCloseTop" class="secondary" type="button">Close</button>
+      </div>
+      <div class="invoice-list-filters">
+        <select id="invoiceListFilter" aria-label="Show">
+          <option value="unpaid">Unpaid</option>
+          <option value="overdue">Overdue</option>
+          <option value="paid">Paid</option>
+          <option value="all">All invoices</option>
+        </select>
+        <input id="invoiceListSearch" type="search" placeholder="Client or invoice number" aria-label="Search invoices" />
+      </div>
+      <div class="invoice-list-scroll">
+        <table class="invoice-list-table">
+          <thead><tr><th>Invoice</th><th>Client</th><th>Date</th><th>Due</th><th class="num">Total</th><th>Status</th><th></th></tr></thead>
+          <tbody id="invoiceListBody"></tbody>
+        </table>
+        <p id="invoiceListEmpty" class="recycle-bin-empty hidden">No invoices to show.</p>
+      </div>
+      <div class="modal-actions">
+        <button id="invoiceListClose" class="primary" type="button">Done</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/shortcuts.js"></script>
   <script src="js/state.js"></script>
   <script src="js/tax-data.js"></script>

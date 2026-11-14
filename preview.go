@@ -159,11 +159,16 @@ func (a *App) OpenIRSPaymentPage() error {
 	return nil
 }
 
-func (a *App) OpenIRSCurrencyExchangeRatesPage() error {
+// OpenIRSCurrencyExchangeRatesPage opens the IRS yearly-average table, or
+// the Treasury's December 31 rates when rateType is "year-end".
+func (a *App) OpenIRSCurrencyExchangeRatesPage(rateType string) error {
 	if err := a.requireSignedIn(); err != nil {
 		return err
 	}
-	const url = "https://www.irs.gov/individuals/international-taxpayers/yearly-average-currency-exchange-rates"
+	url := "https://www.irs.gov/individuals/international-taxpayers/yearly-average-currency-exchange-rates"
+	if rateType == "year-end" {
+		url = "https://fiscaldata.treasury.gov/datasets/treasury-reporting-rates-exchange/treasury-reporting-rates-of-exchange"
+	}
 	wailsruntime.BrowserOpenURL(a.ctx, url)
 	_ = a.appendAppAuditCurrent("", "", "IRS currency exchange-rate website opened", url)
 	return nil
@@ -476,7 +481,10 @@ func stripHTML(s string) string {
 	return strings.Join(strings.Fields(s), " ")
 }
 
-func openPath(path string) error {
+// openPath opens a file with the system's default app. Tests replace it.
+var openPath = openWithSystem
+
+func openWithSystem(path string) error {
 	var cmd *exec.Cmd
 	switch goruntime.GOOS {
 	case "windows":

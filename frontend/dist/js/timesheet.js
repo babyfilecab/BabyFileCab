@@ -120,11 +120,83 @@ function timeSheetDateLabel(date) {
   if (parts.length !== 3 || parts.some(Number.isNaN)) return date;
   return new Date(parts[0], parts[1]-1, parts[2]).toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
 }
+// The first and last day (YYYY-MM-DD) of the period around a date. Weeks run Sunday to Saturday.
+function timeSheetPeriodRange(period, iso) {
+  const d = timeSheetParseDate(iso);
+  if (!d) return [iso, iso];
+  if (period === 'week') {
+    const start = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
+    const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+    return [timeSheetISODate(start), timeSheetISODate(end)];
+  }
+  if (period === 'month') return [timeSheetISODate(new Date(d.getFullYear(), d.getMonth(), 1)), timeSheetISODate(new Date(d.getFullYear(), d.getMonth() + 1, 0))];
+  if (period === 'year') return [`${d.getFullYear()}-01-01`, `${d.getFullYear()}-12-31`];
+  return [iso, iso];
+}
+
+// person: '' for everyone, otherwise a username. clientId: '' for all clients.
+function filterTimeSheetEntries(entries, { from, to, person = '', clientId = '' }) {
+  const who = String(person).toLowerCase();
+  return entries
+    .filter(e => e.date >= from && e.date <= to)
+    .filter(e => !who || String(e.username || '').toLowerCase() === who)
+    .filter(e => !clientId || e.clientId === clientId)
+    .sort((a, b) => a.date.localeCompare(b.date) || String(a.clientName).localeCompare(String(b.clientName)));
+}
+
+function timeSheetClientTotals(entries) {
+  const totals = new Map();
+  entries.forEach(e => totals.set(e.clientName || e.clientId, (totals.get(e.clientName || e.clientId) || 0) + Number(e.hours || 0)));
+  return [...totals.entries()].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])));
+}
+
+function timeSheetPeriod() {
+  return $('timeSheetPeriod')?.value || 'day';
+}
+
+function timeSheetPerson() {
+  if (!isAdministrator()) return String(currentUser?.username || '');
+  return $('timeSheetPerson')?.value ?? String(currentUser?.username || '');
+}
+
 function confirmedTimeSheetEntries() {
-  return timeSheetEntries.filter(entry => entry.date === timeSheetSelectedDate);
+  const [from, to] = timeSheetPeriodRange(timeSheetPeriod(), timeSheetSelectedDate);
+  return filterTimeSheetEntries(timeSheetEntries, { from, to, person: timeSheetPerson(), clientId: $('timeSheetClientFilter')?.value || '' });
+}
+
+// Administrators see everyone's time; staff see their own.
+async function loadTimeSheetEntries() {
+  timeSheetEntries = await (isAdministrator() ? backend().GetFirmTimeSheetEntries() : backend().GetTimeSheetEntries()) || [];
+}
+
+function populateTimeSheetFilters() {
+  const person = $('timeSheetPerson');
+  const previousPerson = person.value;
+  person.replaceChildren(new Option('Me', String(currentUser?.username || '')), new Option('Everyone', ''));
+  (firmCalendarPreparers || []).filter(u => String(u.username).toLowerCase() !== String(currentUser?.username || '').toLowerCase())
+    .forEach(u => person.appendChild(new Option(calendarPreparerName(u.username), u.username)));
+  if ([...person.options].some(o => o.value === previousPerson)) person.value = previousPerson;
+  const client = $('timeSheetClientFilter');
+  const previousClient = client.value;
+  client.replaceChildren(new Option('All clients', ''));
+  timeSheetClientOptions().forEach(c => client.appendChild(new Option(`${c.name} (${c.clientId || ''})`, c.clientId)));
+  if ([...client.options].some(o => o.value === previousClient)) client.value = previousClient;
+}
+
+async function exportTimeSheet() {
+  const shown = confirmedTimeSheetEntries();
+  if (!shown.length) { toast('There are no hours shown to export.', true); return; }
+  const [from, to] = timeSheetPeriodRange(timeSheetPeriod(), timeSheetSelectedDate);
+  const path = await backend().ExportTimeSheetCSV(shown.map(e => e.id), from === to ? `Time_Sheet_${from}` : `Time_Sheet_${from}_to_${to}`);
+  if (path) toast(`Exported ${shown.length} entr${shown.length === 1 ? 'y' : 'ies'} to ${path.split(/[\\/]/).pop()}.`);
+}
+function timeSheetPeriodLabel() {
+  if (!timeSheetSelectedDate) return '';
+  const [from, to] = timeSheetPeriodRange(timeSheetPeriod(), timeSheetSelectedDate);
+  return from === to ? timeSheetDateLabel(from) : `${timeSheetDateLabel(from)} – ${timeSheetDateLabel(to)}`;
 }
 function updateTimeSheetDateStatus() {
-  $('timeSheetDateStatus').textContent = timeSheetSelectedDate ? `Showing time worked on ${timeSheetDateLabel(timeSheetSelectedDate)}.` : 'Choose a date and click OK.';
+  $('timeSheetDateStatus').textContent = timeSheetSelectedDate ? `Showing time worked ${timeSheetPeriod() === 'day' ? 'on' : 'from'} ${timeSheetPeriodLabel()}.` : 'Choose a date and click OK.';
 }
 function confirmTimeSheetDate() {
   const date=$('timeSheetDate').value;
@@ -160,22 +232,35 @@ function renderTimeSheet() {
   const body=$('timeSheetRows'); body.replaceChildren();
   const visible=confirmedTimeSheetEntries();
   let total=0;
+  const me = String(currentUser?.username || '').toLowerCase();
+  const showPerson = timeSheetPerson() !== String(currentUser?.username || '');
+  $('timeSheetBackdrop').classList.toggle('time-sheet-show-person', showPerson);
   for (const entry of visible) {
     total += Number(entry.hours || 0);
     const row=document.createElement('tr');
     const date=document.createElement('td'); date.textContent=entry.date || '';
+    const person=document.createElement('td'); person.className='time-sheet-person-col'; person.textContent=calendarPreparerName(entry.username);
     const client=document.createElement('td'); client.textContent=entry.clientName || '';
     const work=document.createElement('td'); work.textContent=entry.work || '—';
     const hours=document.createElement('td'); hours.textContent=Number(entry.hours || 0).toFixed(2);
+    const billed=document.createElement('td'); billed.textContent=entry.invoiceNumber || '—'; billed.className=entry.invoiceNumber ? 'time-sheet-billed' : 'time-sheet-unbilled';
     const actions=document.createElement('td');
-    const edit=document.createElement('button'); edit.type='button'; edit.className='secondary time-sheet-edit'; edit.textContent='Edit'; edit.dataset.timeEntryEditId=entry.id;
-    const del=document.createElement('button'); del.type='button'; del.className='secondary time-sheet-delete'; del.textContent='Delete'; del.dataset.timeEntryId=entry.id;
-    actions.append(edit,del); row.append(date,client,work,hours,actions); body.appendChild(row);
+    // Only your own unbilled hours can be changed.
+    if (String(entry.username || '').toLowerCase() === me && !entry.invoiceNumber) {
+      const edit=document.createElement('button'); edit.type='button'; edit.className='secondary time-sheet-edit'; edit.textContent='Edit'; edit.dataset.timeEntryEditId=entry.id;
+      const del=document.createElement('button'); del.type='button'; del.className='secondary time-sheet-delete'; del.textContent='Delete'; del.dataset.timeEntryId=entry.id;
+      actions.append(edit,del);
+    }
+    row.append(date,person,client,work,hours,billed,actions); body.appendChild(row);
   }
   $('timeSheetEmpty').classList.toggle('hidden', visible.length !== 0);
-  $('timeSheetEmpty').textContent=timeSheetSelectedDate ? `No time has been entered for ${timeSheetDateLabel(timeSheetSelectedDate)}.` : 'Choose a date and click OK.';
-  $('timeSheetTotal').textContent=`${total.toFixed(2)} hours on selected date`;
-  $('timeSheetUser').textContent=currentUser ? `Time entered by ${[currentUser.firstName,currentUser.lastName].filter(Boolean).join(' ') || currentUser.username}` : '';
+  $('timeSheetEmpty').textContent=timeSheetSelectedDate ? `No time has been entered for ${timeSheetPeriodLabel()}.` : 'Choose a date and click OK.';
+  const unbilled = visible.filter(e => !e.invoiceNumber).reduce((sum, e) => sum + Number(e.hours || 0), 0);
+  $('timeSheetTotal').textContent=`${total.toFixed(2)} hours${unbilled < total ? ` (${unbilled.toFixed(2)} not yet billed)` : ''}`;
+  $('timeSheetUser').textContent=showPerson ? (timeSheetPerson() ? `Time entered by ${calendarPreparerName(timeSheetPerson())}` : 'Time entered by everyone') : (currentUser ? `Time entered by ${[currentUser.firstName,currentUser.lastName].filter(Boolean).join(' ') || currentUser.username}` : '');
+  const totals = timeSheetClientTotals(visible);
+  $('timeSheetClientTotals').replaceChildren(...(totals.length > 1 ? totals.map(([name, hours]) => Object.assign(document.createElement('span'), { textContent: `${name} ${hours.toFixed(2)} h` })) : []));
+  $('timeSheetExport').disabled = visible.length === 0;
 }
 async function showTimeSheet() {
   if (!currentUser) return;
@@ -187,7 +272,12 @@ async function showTimeSheet() {
   timeSheetPendingDate=todayValue;
   timeSheetSelectedDate=todayValue;
   cancelTimeSheetEdit();
-  timeSheetEntries=await backend().GetTimeSheetEntries();
+  if (isAdministrator() && !firmCalendarPreparers.length) firmCalendarPreparers = await backend().ListCompanyUsers().catch(() => []);
+  $('timeSheetPeriod').value = 'day';
+  populateTimeSheetFilters();
+  $('timeSheetPerson').value = String(currentUser.username || '');
+  $('timeSheetClientFilter').value = '';
+  await loadTimeSheetEntries();
   updateTimeSheetDateStatus();
   renderTimeSheet();
   $('timeSheetBackdrop').classList.remove('hidden');
@@ -205,12 +295,14 @@ async function addTimeSheetEntry() {
   const button=$('timeSheetAdd'); button.disabled=true;
   try {
     if (timeSheetEditingId) {
-      timeSheetEntries=await backend().UpdateTimeSheetEntry(timeSheetEditingId,date,clientPath,work,hours);
+      await backend().UpdateTimeSheetEntry(timeSheetEditingId,date,clientPath,work,hours);
+      await loadTimeSheetEntries();
       cancelTimeSheetEdit();
       renderTimeSheet();
       toast('Time entry updated.');
     } else {
-      timeSheetEntries=await backend().SaveTimeSheetEntry(date,clientPath,work,hours);
+      await backend().SaveTimeSheetEntry(date,clientPath,work,hours);
+      await loadTimeSheetEntries();
       $('timeSheetWork').value=''; $('timeSheetHours').value=''; renderTimeSheet(); toast('Time added.'); $('timeSheetWork').focus();
     }
   } catch(error) { showError(error); }
@@ -224,7 +316,8 @@ function editTimeSheetEntry(id) {
 async function deleteTimeSheetEntry(id) {
   if (!id || !confirm('Delete this time entry?')) return;
   try {
-    timeSheetEntries=await backend().DeleteTimeSheetEntry(id);
+    await backend().DeleteTimeSheetEntry(id);
+    await loadTimeSheetEntries();
     if (timeSheetEditingId === id) cancelTimeSheetEdit();
     renderTimeSheet(); toast('Time entry deleted.');
   }

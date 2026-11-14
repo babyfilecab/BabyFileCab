@@ -54,7 +54,7 @@ function renderRecycleBin() {
     restore.dataset.recycleRestore = item.id;
     const remove = document.createElement('button');
     remove.type = 'button';
-    remove.className = 'danger';
+    remove.className = 'danger admin-only';
     remove.textContent = 'Delete forever';
     remove.dataset.recycleDelete = item.id;
     actions.append(restore, remove);

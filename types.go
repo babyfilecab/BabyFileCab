@@ -142,6 +142,8 @@ type TimeSheetEntry struct {
 	Hours      float64 `json:"hours"`
 	Username   string  `json:"username"`
 	CreatedAt  string  `json:"createdAt"`
+	// Set once the hours are billed, so they aren't billed twice.
+	InvoiceNumber string `json:"invoiceNumber,omitempty"`
 }
 
 type ClientCommunication struct {
@@ -189,6 +191,7 @@ type engagementLetterData struct {
 	LogoPath        string
 	LogoWidth       int
 	LogoHeight      int
+	Template        EngagementTemplate
 }
 
 type engagementLetterSection struct {
@@ -197,19 +200,32 @@ type engagementLetterSection struct {
 }
 
 type InvoiceRequest struct {
-	ClientPath       string `json:"clientPath"`
-	PreparerUsername string `json:"preparerUsername"`
-	Service          string `json:"service"`
-	TaxYear          string `json:"taxYear"`
-	InvoiceNumber    string `json:"invoiceNumber"`
-	InvoiceDate      string `json:"invoiceDate"`
-	DueDate          string `json:"dueDate"`
-	FeeType          string `json:"feeType"`
-	FeeValue         string `json:"feeValue"`
-	Hours            string `json:"hours"`
-	Description      string `json:"description"`
-	Notes            string `json:"notes"`
-	OutputPath       string `json:"outputPath"`
+	ClientPath       string             `json:"clientPath"`
+	PreparerUsername string             `json:"preparerUsername"`
+	Service          string             `json:"service"`
+	TaxYear          string             `json:"taxYear"`
+	InvoiceNumber    string             `json:"invoiceNumber"`
+	InvoiceDate      string             `json:"invoiceDate"`
+	DueDate          string             `json:"dueDate"`
+	Lines            []InvoiceLineInput `json:"lines"`
+	Notes            string             `json:"notes"`
+	OutputPath       string             `json:"outputPath"`
+	// Time Sheet entries billed on this invoice; they are marked so they
+	// aren't billed twice.
+	TimeEntryIDs []string `json:"timeEntryIds"`
+}
+
+type InvoiceLineInput struct {
+	Description string  `json:"description"`
+	Quantity    float64 `json:"quantity"`
+	Rate        float64 `json:"rate"`
+}
+
+type invoiceLine struct {
+	Description string
+	Quantity    float64
+	Rate        float64
+	Amount      float64
 }
 
 type invoiceData struct {
@@ -230,11 +246,8 @@ type invoiceData struct {
 	InvoiceNumber   string
 	InvoiceDate     string
 	DueDate         string
-	FeeType         string
-	Rate            float64
-	Hours           float64
+	Lines           []invoiceLine
 	Total           float64
-	Description     string
 	Notes           string
 	LogoPath        string
 	LogoWidth       int

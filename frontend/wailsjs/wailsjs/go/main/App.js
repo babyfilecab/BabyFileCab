@@ -70,8 +70,8 @@ export function ChooseInboxFolder() {
   return window['go']['main']['App']['ChooseInboxFolder']();
 }
 
-export function ChooseInvoiceSavePath(arg1, arg2, arg3) {
-  return window['go']['main']['App']['ChooseInvoiceSavePath'](arg1, arg2, arg3);
+export function ChooseInvoiceSavePath(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['ChooseInvoiceSavePath'](arg1, arg2, arg3, arg4);
 }
 
 export function ClearEngagementLetterLogo() {
@@ -134,6 +134,10 @@ export function ExitBabyFileCab() {
   return window['go']['main']['App']['ExitBabyFileCab']();
 }
 
+export function ExportTimeSheetCSV(arg1, arg2) {
+  return window['go']['main']['App']['ExportTimeSheetCSV'](arg1, arg2);
+}
+
 export function FileInboxDocument(arg1, arg2, arg3) {
   return window['go']['main']['App']['FileInboxDocument'](arg1, arg2, arg3);
 }
@@ -178,8 +182,16 @@ export function GetEngagementLetterLogo() {
   return window['go']['main']['App']['GetEngagementLetterLogo']();
 }
 
+export function GetEngagementTemplate() {
+  return window['go']['main']['App']['GetEngagementTemplate']();
+}
+
 export function GetFirmCalendar2026() {
   return window['go']['main']['App']['GetFirmCalendar2026']();
+}
+
+export function GetFirmTimeSheetEntries() {
+  return window['go']['main']['App']['GetFirmTimeSheetEntries']();
 }
 
 export function GetInboxFolder() {
@@ -242,8 +254,16 @@ export function ListDocumentVersions(arg1) {
   return window['go']['main']['App']['ListDocumentVersions'](arg1);
 }
 
+export function ListFirmServices() {
+  return window['go']['main']['App']['ListFirmServices']();
+}
+
 export function ListInbox() {
   return window['go']['main']['App']['ListInbox']();
+}
+
+export function ListInvoices() {
+  return window['go']['main']['App']['ListInvoices']();
 }
 
 export function ListRecycleBin() {
@@ -266,6 +286,10 @@ export function MoveDocument(arg1, arg2) {
   return window['go']['main']['App']['MoveDocument'](arg1, arg2);
 }
 
+export function NextInvoiceNumber() {
+  return window['go']['main']['App']['NextInvoiceNumber']();
+}
+
 export function NodeType(arg1) {
   return window['go']['main']['App']['NodeType'](arg1);
 }
@@ -282,8 +306,8 @@ export function OpenFile(arg1) {
   return window['go']['main']['App']['OpenFile'](arg1);
 }
 
-export function OpenIRSCurrencyExchangeRatesPage() {
-  return window['go']['main']['App']['OpenIRSCurrencyExchangeRatesPage']();
+export function OpenIRSCurrencyExchangeRatesPage(arg1) {
+  return window['go']['main']['App']['OpenIRSCurrencyExchangeRatesPage'](arg1);
 }
 
 export function OpenIRSPaymentPage() {
@@ -330,6 +354,10 @@ export function RenameTaxYear(arg1, arg2) {
   return window['go']['main']['App']['RenameTaxYear'](arg1, arg2);
 }
 
+export function ResetEngagementTemplate() {
+  return window['go']['main']['App']['ResetEngagementTemplate']();
+}
+
 export function RestoreClient(arg1) {
   return window['go']['main']['App']['RestoreClient'](arg1);
 }
@@ -356,6 +384,10 @@ export function SaveBackupSettings(arg1, arg2, arg3) {
 
 export function SaveDocumentDescription(arg1, arg2) {
   return window['go']['main']['App']['SaveDocumentDescription'](arg1, arg2);
+}
+
+export function SaveEngagementTemplate(arg1) {
+  return window['go']['main']['App']['SaveEngagementTemplate'](arg1);
 }
 
 export function SaveNotes(arg1, arg2) {
@@ -386,6 +418,10 @@ export function SetFirmCalendarStatus2026(arg1, arg2, arg3) {
   return window['go']['main']['App']['SetFirmCalendarStatus2026'](arg1, arg2, arg3);
 }
 
+export function SetInvoicePaid(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SetInvoicePaid'](arg1, arg2, arg3);
+}
+
 export function SetUpdateCheckEnabled(arg1) {
   return window['go']['main']['App']['SetUpdateCheckEnabled'](arg1);
 }
@@ -396,6 +432,10 @@ export function TouchActivity() {
 
 export function UnarchiveClient(arg1) {
   return window['go']['main']['App']['UnarchiveClient'](arg1);
+}
+
+export function UnbilledTimeForClient(arg1) {
+  return window['go']['main']['App']['UnbilledTimeForClient'](arg1);
 }
 
 export function UpdateClientProfile(arg1, arg2, arg3, arg4, arg5, arg6) {

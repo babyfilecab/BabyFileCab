@@ -59,6 +59,7 @@ type App struct {
 	autoLockMinutes int
 	calendarMu      sync.Mutex
 	recycleMu       sync.Mutex
+	invoiceMu       sync.Mutex
 	backupMu        sync.Mutex
 	updateMu        sync.Mutex
 	lastUpdateCheck time.Time

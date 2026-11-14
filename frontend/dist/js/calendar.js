@@ -213,6 +213,95 @@ function preferredFirmCalendarAssignment(items = firmCalendarAssignments) {
   })[0];
 }
 
+// Filing deadlines -------------------------------------------------------------
+// Federal due dates for calendar-year filers. A date that lands on a weekend
+// or a Washington, D.C. legal holiday moves to the next business day, as the
+// IRS does (that's why April 15 sometimes becomes April 17 or 18).
+
+function nthWeekdayISO(year, month, weekday, n) {
+  // n = 1..4 for first..fourth, -1 for last. month is 1-12, weekday 0=Sunday.
+  if (n > 0) {
+    const first = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+    const day = 1 + ((weekday - first + 7) % 7) + (n - 1) * 7;
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+  const lastDay = new Date(Date.UTC(year, month, 0));
+  const back = (lastDay.getUTCDay() - weekday + 7) % 7;
+  return `${year}-${String(month).padStart(2, '0')}-${String(lastDay.getUTCDate() - back).padStart(2, '0')}`;
+}
+
+function observedHolidayISO(year, month, day) {
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const dow = date.getUTCDay();
+  if (dow === 6) date.setUTCDate(day - 1);
+  if (dow === 0) date.setUTCDate(day + 1);
+  return date.toISOString().slice(0, 10);
+}
+
+const federalHolidayCache = {};
+function federalHolidays(year) {
+  if (!federalHolidayCache[year]) {
+    federalHolidayCache[year] = new Set([
+      observedHolidayISO(year, 1, 1),
+      nthWeekdayISO(year, 1, 1, 3),   // Martin Luther King Jr. Day
+      nthWeekdayISO(year, 2, 1, 3),   // Washington's Birthday
+      observedHolidayISO(year, 4, 16), // D.C. Emancipation Day
+      nthWeekdayISO(year, 5, 1, -1),  // Memorial Day
+      observedHolidayISO(year, 6, 19),
+      observedHolidayISO(year, 7, 4),
+      nthWeekdayISO(year, 9, 1, 1),   // Labor Day
+      nthWeekdayISO(year, 10, 1, 2),  // Columbus Day
+      observedHolidayISO(year, 11, 11),
+      nthWeekdayISO(year, 11, 4, 4),  // Thanksgiving
+      observedHolidayISO(year, 12, 25),
+      observedHolidayISO(year + 1, 1, 1), // Jan 1 that is observed on Dec 31
+    ]);
+  }
+  return federalHolidayCache[year];
+}
+
+// Returns the ISO date a deadline actually falls on.
+function taxDeadlineDate(year, month, day) {
+  const date = new Date(Date.UTC(year, month - 1, day));
+  for (;;) {
+    const iso = date.toISOString().slice(0, 10);
+    const dow = date.getUTCDay();
+    if (dow !== 0 && dow !== 6 && !federalHolidays(date.getUTCFullYear()).has(iso)) return iso;
+    date.setUTCDate(date.getUTCDate() + 1);
+  }
+}
+
+// Deadlines shown on the calendar for one calendar year.
+const FILING_DEADLINES = [
+  [1, 15, 'Q4 estimated tax (prior year)'],
+  [1, 31, 'W-2, 1099-NEC to recipients and IRS'],
+  [3, 15, '1065, 1120-S due (or extend)'],
+  [4, 15, '1040, 1120, 1041, 709 due (or extend) · Q1 estimate'],
+  [5, 15, '990 due (or extend)'],
+  [6, 15, 'Q2 estimated tax'],
+  [9, 15, 'Extended 1065, 1120-S due · Q3 estimate'],
+  [9, 30, 'Extended 1041 due'],
+  [10, 15, 'Extended 1040, 1120 due'],
+  [11, 15, 'Extended 990 due'],
+];
+
+const filingDeadlineCache = {};
+function filingDeadlinesFor(year) {
+  if (!filingDeadlineCache[year]) {
+    const byDate = {};
+    FILING_DEADLINES.forEach(([month, day, label]) => {
+      const iso = taxDeadlineDate(year, month, day);
+      (byDate[iso] = byDate[iso] || []).push(label);
+    });
+    filingDeadlineCache[year] = byDate;
+  }
+  return filingDeadlineCache[year];
+}
+
+function filingDeadlinesOn(iso) {
+  return filingDeadlinesFor(Number(iso.slice(0, 4)))[iso] || [];
+}
+
 // Needs attention ------------------------------------------------------------
 // Flags scheduled work that has stalled, using the statuses preparers already
 // set on the Firm Calendar. Staff see their own and unassigned clients;
@@ -223,7 +312,26 @@ const NEEDS_ATTENTION_RULES = {
   'waiting-for-signature': 7,
   'signed': 3,
   'ready-to-e-file': 2,
+  'e-filed': 3,   // no acceptance yet
+  'rejected': 0,  // needs fixing straight away
 };
+// Statuses that mean the work is finished.
+const FINISHED_CALENDAR_STATUSES = new Set(['completed', 'accepted']);
+
+// Individual extensions run to October 15 (moved to the next business day).
+// Remind from September 15 so there is a month to finish.
+function extensionReminder(item, todayISO) {
+  const year = Number(String(item.date).slice(0, 4));
+  if (!year) return null;
+  const due = taxDeadlineDate(year, 10, 15);
+  const remindFrom = `${year}-09-15`;
+  if (todayISO < remindFrom) return null;
+  const days = daysBetweenISO(todayISO, due);
+  const reason = days >= 0
+    ? `Extension filed · extended deadline ${firmCalendarFormatDate(firmCalendarDateFromISO(due), { month: 'short', day: 'numeric' })} (${days} day${days === 1 ? '' : 's'} left)`
+    : `Extension filed · extended deadline passed ${-days} day${days === -1 ? '' : 's'} ago`;
+  return { item, days: Math.max(0, -days), reason };
+}
 let needsAttentionItems = [];
 
 function localISODate(date = new Date()) {
@@ -244,9 +352,15 @@ function findNeedsAttention(assignments, todayISO, user) {
     const owner = String(item.preparerUsername || '').toLowerCase();
     if (!admin && owner && owner !== me) continue;
     const status = item.status || '';
-    if (status === 'completed') continue;
+    if (FINISHED_CALENDAR_STATUSES.has(status)) continue;
     const plural = n => `${n} day${n === 1 ? '' : 's'}`;
-    if (NEEDS_ATTENTION_RULES[status] !== undefined) {
+    if (status === 'extension-filed') {
+      const reminder = extensionReminder(item, todayISO);
+      if (reminder) out.push(reminder);
+    } else if (status === 'rejected') {
+      const days = daysBetweenISO(item.statusSince || item.date, todayISO);
+      out.push({ item, days, reason: `E-file rejected ${days ? `${plural(days)} ago` : 'today'}` });
+    } else if (NEEDS_ATTENTION_RULES[status] !== undefined) {
       // Older entries have no status date; fall back to the scheduled date.
       const since = item.statusSince || item.date;
       const days = daysBetweenISO(since, todayISO);
@@ -391,9 +505,42 @@ function clearFirmCalendarClientDetail() {
   $('firmCalendarClientDocuments').innerHTML = '';
 }
 
+// Every status, in the order a return usually moves through them.
+// Keep in step with calendarStatuses in calendar_status.go.
+const FIRM_CALENDAR_STATUSES = [
+  ['drafting', 'Drafting'],
+  ['waiting-on-reports', 'Waiting on reports'],
+  ['extension-filed', 'Extension filed'],
+  ['8879-sent', '8879 Sent'],
+  ['waiting-for-signature', 'Waiting for Signature'],
+  ['signed', 'Signed'],
+  ['ready-to-e-file', 'Ready to E-file'],
+  ['e-filed', 'E-filed'],
+  ['accepted', 'Accepted'],
+  ['rejected', 'Rejected'],
+  ['completed', 'Completed'],
+];
 function firmCalendarStatusLabel(status) {
-  const labels={'drafting':'Drafting','waiting-on-reports':'Waiting on reports','completed':'Completed','8879-sent':'8879 Sent','waiting-for-signature':'Waiting for Signature','signed':'Signed','ready-to-e-file':'Ready to E-file'};
-  return Object.prototype.hasOwnProperty.call(labels,status) ? labels[status] : '';
+  const found = FIRM_CALENDAR_STATUSES.find(([value]) => value === status);
+  return found ? found[1] : '';
+}
+function firmCalendarStatusOptionsHTML() {
+  return FIRM_CALENDAR_STATUSES.map(([value, label]) => `<option value="status-${value}">${escapeHTML(label)}</option>`).join('');
+}
+// Fills the calendar right-click menu from FIRM_CALENDAR_STATUSES.
+function buildFirmCalendarStatusMenu() {
+  const menu = $('firmCalendarContextMenu');
+  const clear = menu?.querySelector('[data-calendar-context-action="status-clear"]');
+  if (!clear || menu.querySelector('[data-calendar-context-action="status-drafting"]')) return;
+  let after = clear;
+  FIRM_CALENDAR_STATUSES.forEach(([value, label]) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.calendarContextAction = `status-${value}`;
+    button.textContent = label;
+    after.after(button);
+    after = button;
+  });
 }
 function firmCalendarStatusBadge(status) {
   if (status === 'completed') return '<span class="firm-calendar-completed" title="Completed" aria-label="Completed">✓</span>';
@@ -470,7 +617,7 @@ function renderFirmCalendarSearch() {
   results.innerHTML=`<div class="calendar-search-summary">${clients.length} matching client${clients.length===1?'':'s'} · All firm clients</div><div class="calendar-search-workspace"><div class="calendar-search-list">${clients.map(client=>{
     const count=firmCalendarAssignments.filter(item=>item.clientId===client.clientId).length;
     return `<button type="button" class="calendar-search-client ${client.clientId===calendarSearchSelectedClient?'is-selected':''}" data-calendar-select-client="${escapeHTML(client.clientId)}" aria-pressed="${client.clientId===calendarSearchSelectedClient}"><strong>${escapeHTML(client.name)}</strong><small>${count ? `${count} scheduled date${count===1?'':'s'}`:'Not scheduled'}</small></button>`;
-  }).join('') || '<p>No clients found. Try a different name.</p>'}</div><div class="calendar-search-detail">${selected ? `<h3>${escapeHTML(selected.name)}</h3><p>Select a scheduled entry to open it or make changes.</p>${entries.length ? `<label for="calendarSearchDateChoice">Scheduled date · preparer · status</label><select id="calendarSearchDateChoice">${entries.map(item=>`<option value="${escapeHTML(item.date)}">${escapeHTML(item.date)} · ${escapeHTML(calendarPreparerName(item.preparerUsername))} · ${escapeHTML(firmCalendarStatusLabel(item.status) || 'No status')}</option>`).join('')}</select><div class="calendar-search-actions"><button type="button" class="primary" data-calendar-search-command="go">Go to Calendar</button><select id="calendarSearchEditChoice" aria-label="Change selected assignment"><option value="">Change assignment…</option><option value="preparer">Change preparer</option><option value="date">Move to another date</option><optgroup label="Set status"><option value="status-drafting">Drafting</option><option value="status-waiting-on-reports">Waiting on reports</option><option value="status-8879-sent">8879 Sent</option><option value="status-waiting-for-signature">Waiting for Signature</option><option value="status-signed">Signed</option><option value="status-ready-to-e-file">Ready to E-file</option><option value="status-completed">Completed</option><option value="clear">Clear status</option></optgroup></select></div>` : '<p class="calendar-search-empty">This client has no scheduled dates yet.</p>'}<button type="button" class="secondary" data-calendar-schedule-client="${escapeHTML(selected.clientId)}">＋ Assign a Date &amp; Preparer</button>` : '<p>Search for a client to get started.</p>'}</div></div>`;
+  }).join('') || '<p>No clients found. Try a different name.</p>'}</div><div class="calendar-search-detail">${selected ? `<h3>${escapeHTML(selected.name)}</h3><p>Select a scheduled entry to open it or make changes.</p>${entries.length ? `<label for="calendarSearchDateChoice">Scheduled date · preparer · status</label><select id="calendarSearchDateChoice">${entries.map(item=>`<option value="${escapeHTML(item.date)}">${escapeHTML(item.date)} · ${escapeHTML(calendarPreparerName(item.preparerUsername))} · ${escapeHTML(firmCalendarStatusLabel(item.status) || 'No status')}</option>`).join('')}</select><div class="calendar-search-actions"><button type="button" class="primary" data-calendar-search-command="go">Go to Calendar</button><select id="calendarSearchEditChoice" aria-label="Change selected assignment"><option value="">Change assignment…</option><option value="preparer">Change preparer</option><option value="date">Move to another date</option><optgroup label="Set status">${firmCalendarStatusOptionsHTML()}<option value="clear">Clear status</option></optgroup></select></div>` : '<p class="calendar-search-empty">This client has no scheduled dates yet.</p>'}<button type="button" class="secondary" data-calendar-schedule-client="${escapeHTML(selected.clientId)}">＋ Assign a Date &amp; Preparer</button>` : '<p>Search for a client to get started.</p>'}</div></div>`;
 }
 async function setFirmCalendarStatus(item, status) {
   const generation = sessionGeneration;
@@ -532,6 +679,7 @@ function renderFirmCalendarWeek() {
         </div>
         ${inYear ? `<button type="button" class="firm-calendar-add" data-calendar-add-date="${iso}" title="Assign a client to ${iso}">＋</button>` : ''}
       </header>
+      ${filingDeadlinesOn(iso).map(label => `<div class="firm-calendar-deadline" title="Federal deadline for calendar-year filers">${escapeHTML(label)}</div>`).join('')}
       <div class="firm-calendar-day-clients">${clientRows}</div>
     </article>`);
   }

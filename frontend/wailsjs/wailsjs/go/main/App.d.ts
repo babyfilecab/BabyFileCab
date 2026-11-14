@@ -36,7 +36,7 @@ export function ChooseEngagementLetterSavePath(arg1:string,arg2:string,arg3:stri
 
 export function ChooseInboxFolder():Promise<string>;
 
-export function ChooseInvoiceSavePath(arg1:string,arg2:string,arg3:string):Promise<string>;
+export function ChooseInvoiceSavePath(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
 
 export function ClearEngagementLetterLogo():Promise<void>;
 
@@ -68,6 +68,8 @@ export function EnrollExistingUser(arg1:string,arg2:string):Promise<void>;
 
 export function ExitBabyFileCab():Promise<void>;
 
+export function ExportTimeSheetCSV(arg1:Array<string>,arg2:string):Promise<string>;
+
 export function FileInboxDocument(arg1:string,arg2:string,arg3:string):Promise<string>;
 
 export function GenerateEngagementLetter(arg1:main.EngagementLetterRequest,arg2:string):Promise<Array<string>>;
@@ -90,7 +92,11 @@ export function GetDocumentProperties(arg1:string):Promise<main.DocumentProperti
 
 export function GetEngagementLetterLogo():Promise<main.EngagementLetterLogoInfo>;
 
+export function GetEngagementTemplate():Promise<main.EngagementTemplateInfo>;
+
 export function GetFirmCalendar2026():Promise<Array<main.FirmCalendarAssignment>>;
+
+export function GetFirmTimeSheetEntries():Promise<Array<main.TimeSheetEntry>>;
 
 export function GetInboxFolder():Promise<string>;
 
@@ -122,7 +128,11 @@ export function ListCompanyUsers():Promise<Array<main.UserProfile>>;
 
 export function ListDocumentVersions(arg1:string):Promise<Array<main.DocumentVersion>>;
 
+export function ListFirmServices():Promise<Array<main.FirmService>>;
+
 export function ListInbox():Promise<Array<main.InboxFile>>;
+
+export function ListInvoices():Promise<Array<main.InvoiceRecord>>;
 
 export function ListRecycleBin():Promise<Array<main.RecycleItem>>;
 
@@ -134,6 +144,8 @@ export function Logout():Promise<void>;
 
 export function MoveDocument(arg1:string,arg2:string):Promise<string>;
 
+export function NextInvoiceNumber():Promise<string>;
+
 export function NodeType(arg1:string):Promise<string>;
 
 export function OpenDataFolder():Promise<void>;
@@ -142,7 +154,7 @@ export function OpenDocumentVersion(arg1:string,arg2:string):Promise<void>;
 
 export function OpenFile(arg1:string):Promise<void>;
 
-export function OpenIRSCurrencyExchangeRatesPage():Promise<void>;
+export function OpenIRSCurrencyExchangeRatesPage(arg1:string):Promise<void>;
 
 export function OpenIRSPaymentPage():Promise<void>;
 
@@ -166,6 +178,8 @@ export function RenameSection(arg1:string,arg2:string):Promise<string>;
 
 export function RenameTaxYear(arg1:string,arg2:string):Promise<string>;
 
+export function ResetEngagementTemplate():Promise<void>;
+
 export function RestoreClient(arg1:string):Promise<string>;
 
 export function RestoreDocumentVersion(arg1:string,arg2:string):Promise<void>;
@@ -179,6 +193,8 @@ export function RunScheduledBackup():Promise<main.BackupSettings>;
 export function SaveBackupSettings(arg1:string,arg2:string,arg3:number):Promise<main.BackupSettings>;
 
 export function SaveDocumentDescription(arg1:string,arg2:string):Promise<void>;
+
+export function SaveEngagementTemplate(arg1:main.EngagementTemplate):Promise<void>;
 
 export function SaveNotes(arg1:string,arg2:string):Promise<void>;
 
@@ -194,11 +210,15 @@ export function SetDocumentEnteredDone(arg1:string,arg2:boolean):Promise<void>;
 
 export function SetFirmCalendarStatus2026(arg1:string,arg2:string,arg3:string):Promise<Array<main.FirmCalendarAssignment>>;
 
+export function SetInvoicePaid(arg1:string,arg2:boolean,arg3:string):Promise<Array<main.InvoiceRecord>>;
+
 export function SetUpdateCheckEnabled(arg1:boolean):Promise<void>;
 
 export function TouchActivity():Promise<boolean>;
 
 export function UnarchiveClient(arg1:string):Promise<string>;
+
+export function UnbilledTimeForClient(arg1:string):Promise<Array<main.TimeSheetEntry>>;
 
 export function UpdateClientProfile(arg1:string,arg2:string,arg3:string,arg4:string,arg5:string,arg6:string):Promise<void>;
 

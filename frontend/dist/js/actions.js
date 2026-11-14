@@ -40,6 +40,7 @@ async function doAction(action) {
       }
       case 'delete-client': {
         const client = selectedClient(); if (!client) throw new Error('Select a client first.');
+        if (!isAdministrator()) throw new Error('Only an administrator can delete a client. You can archive the client instead (File › Archive Client).');
         if (!confirm(`Move ${client.name} and every document inside it to the Recycle Bin? You can restore it for 30 days.`)) return;
         await backend().DeleteClient(client.path); selectedNode = null; await refreshTree(); clearPreview(); break;
       }

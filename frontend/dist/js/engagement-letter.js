@@ -1,16 +1,33 @@
 // Engagement Letter generator.
 
-const ENGAGEMENT_SERVICES = ['1040', '1041', '1065', '1120S', '1120', 'Bookkeeping', 'Tax Projection'];
-const ENGAGEMENT_TAX_RETURN_SERVICES = new Set(['1040', '1041', '1065', '1120S', '1120']);
-const ENGAGEMENT_SERVICE_DESCRIPTIONS = {
-  '1040': 'Form 1040 U.S. Individual Income Tax Return',
-  '1041': 'Form 1041 U.S. Income Tax Return for Estates and Trusts',
-  '1065': 'Form 1065 U.S. Return of Partnership Income',
-  '1120S': 'Form 1120-S U.S. Income Tax Return for an S Corporation',
-  '1120': 'Form 1120 U.S. Corporation Income Tax Return',
-  'Bookkeeping': 'bookkeeping services',
-  'Tax Projection': 'tax projection services',
-};
+// Services and letter wording come from the backend so the preview always
+// matches the finished letter.
+let FIRM_SERVICES = [];
+let ENGAGEMENT_SERVICES = [];
+let ENGAGEMENT_SERVICE_DESCRIPTIONS = {};
+let engagementTemplateInfo = null;
+
+async function loadFirmServices() {
+  if (FIRM_SERVICES.length) return;
+  FIRM_SERVICES = await backend().ListFirmServices() || [];
+  ENGAGEMENT_SERVICES = FIRM_SERVICES.map(s => s.code);
+  ENGAGEMENT_SERVICE_DESCRIPTIONS = Object.fromEntries(FIRM_SERVICES.map(s => [s.code, s.description]));
+}
+
+function fillServiceSelect(select) {
+  const current = select.value;
+  select.replaceChildren(new Option('Select a service…', ''));
+  FIRM_SERVICES.forEach(s => select.appendChild(new Option(s.label, s.code)));
+  select.value = ENGAGEMENT_SERVICES.includes(current) ? current : '';
+}
+
+async function loadEngagementTemplate() {
+  engagementTemplateInfo = await backend().GetEngagementTemplate();
+}
+
+function fillEngagementPlaceholders(text, values) {
+  return String(text || '').replace(/\{([a-z_]+)\}/g, (m, name) => (name in values ? values[name] : m));
+}
 
 function engagementFormatFee(feeType, raw) {
   let value = String(raw || '').trim().replace(/^\$\s*/, '');
@@ -29,48 +46,26 @@ function engagementDisplayDate(value) {
 }
 
 function engagementLetterSections(data) {
-  const company = String(data.companyName || '').trim() || 'the Firm';
-  const client = String(data.clientName || '').trim() || 'the Client';
+  const template = engagementTemplateInfo?.template;
+  if (!template) return { intro: '', sections: [], closing: '' };
   const service = String(data.service || '').trim();
-  const year = String(data.taxYear || '').trim();
   const feeType = String(data.feeType || 'Flat Fee').trim();
-  const feeValue = engagementFormatFee(feeType, data.feeValue) || 'Enter fee or rate';
-  const description = ENGAGEMENT_SERVICE_DESCRIPTIONS[service] || service || 'professional services';
-
-  const intro = `Thank you for engaging ${company}. This Engagement Letter confirms the terms, scope, and limitations of our engagement with ${client} for ${description} for tax year or period ${year}. Please review this letter carefully because it defines the responsibilities of both the Client and the Firm.`;
-
-  let scope;
-  if (ENGAGEMENT_TAX_RETURN_SERVICES.has(service)) {
-    scope = `${company} will prepare the federal ${description} identified above from information, books, records, schedules, financial statements, and representations provided by ${client}. State, local, amended, informational, payroll, sales tax, foreign reporting, bookkeeping, notice response, audit, tax planning, tax projection, and other services are outside this engagement unless separately agreed to in writing.`;
-  } else if (service === 'Bookkeeping') {
-    scope = `${company} will provide bookkeeping services for ${client} using bank data, source documents, account information, classifications, instructions, and other records supplied or approved by the Client. The engagement may include recording transactions, reconciliations, and preparation of management reports or financial statements from those records. Unless separately agreed in writing, this engagement does not include an audit, review, compilation, tax return preparation, payroll, sales tax, or assurance service.`;
-  } else {
-    scope = `${company} will prepare tax projections for ${client} using the income, deduction, withholding, estimated payment, transaction, and other assumptions supplied by the Client. A projection is an estimate based on information available at the time and is not a guarantee of the Client's final tax liability. Actual results may differ because of later transactions, incomplete information, changes in law, or other events.`;
-  }
-
-  const sections = [
-    ['Scope of Services', scope],
-    ['Client Responsibilities', `${client} is responsible for providing complete, accurate, and timely information and for maintaining the books, records, source documents, and supporting evidence required for the services and by applicable tax or regulatory authorities. The Client must review all returns, reports, projections, or other work product before relying on, signing, or filing it.`],
-    ['Our Responsibilities', `${company} will perform the agreed services using information and records supplied by ${client}. Unless separately agreed in writing, our services are not an audit, review, examination, agreed-upon procedures engagement, or other assurance service, and we will not independently verify the information provided to us.`],
-  ];
-
-  if (ENGAGEMENT_TAX_RETURN_SERVICES.has(service)) {
-    sections.push(
-      ['Tax Positions and Electronic Filing', `${company} may request clarification or additional documentation when information appears incomplete or inconsistent. The Firm may decline a tax position that it believes lacks adequate support. If the return is eligible for electronic filing, the Firm will not transmit it until the required signed e-file authorization is received.`]
-    );
-  }
-
-  sections.push(
-    ['Deadlines and Client Action', `${client} agrees to provide requested information sufficiently in advance of applicable deadlines. An extension of time to file is not an extension of time to pay. Tax payments, estimated payments, signatures, approvals, and other Client actions remain the Client's responsibility unless separately agreed in writing.`],
-    ['Fees and Additional Services', `The agreed fee arrangement for this engagement is ${feeType}: ${feeValue}. This fee applies only to the service identified in this Engagement Letter. Additional work outside the stated scope may require a separate fee or hourly charge agreed to by the Client and the Firm.`],
-    ['Records and Confidentiality', `${company} will handle Client information in accordance with applicable professional and legal obligations. The Client should retain original records and supporting documentation.`],
-    ['Termination', `Either ${client} or ${company} may terminate this engagement by written notice. The Client remains responsible for fees earned and costs incurred through the termination date and for all filing, payment, recordkeeping, and other deadlines after termination.`]
-  );
-
+  const values = {
+    firm: String(data.companyName || '').trim() || 'the Firm',
+    client: String(data.clientName || '').trim() || 'the Client',
+    service: ENGAGEMENT_SERVICE_DESCRIPTIONS[service] || service || 'professional services',
+    year: String(data.taxYear || '').trim(),
+    fee_type: feeType,
+    fee: engagementFormatFee(feeType, data.feeValue) || 'Enter fee or rate',
+    not_included: engagementTemplateInfo.notIncluded?.[service] || '',
+  };
+  const kind = FIRM_SERVICES.find(s => s.code === service)?.kind || 'tax-return';
   return {
-    intro,
-    sections,
-    closing: `If the terms above correctly describe your understanding of this engagement, please sign below. Your signature confirms that ${client} has read, understands, and accepts this Engagement Letter with ${company}.`,
+    intro: fillEngagementPlaceholders(template.intro, values),
+    sections: template.sections
+      .filter(s => s.appliesTo === 'all' || s.appliesTo === kind)
+      .map(s => [fillEngagementPlaceholders(s.title, values), fillEngagementPlaceholders(s.body, values)]),
+    closing: fillEngagementPlaceholders(template.closing, values),
   };
 }
 
@@ -118,6 +113,10 @@ async function showEngagementLetter() {
   }
 
   engagementLetterUsers = await backend().ListCompanyUsers();
+  await loadFirmServices();
+  await loadEngagementTemplate();
+  fillServiceSelect($('engagementService'));
+  $('engagementEditWording').classList.toggle('hidden', !isAdministrator());
   $('engagementCompanyAccount').textContent = currentUser?.companyName || 'BabyFileCab Company';
 
   const clientSelect = $('engagementClient');
@@ -345,11 +344,125 @@ async function generateEngagementLetter(kind) {
     req.outputPath = chosen;
     buttons.forEach(button => button.disabled = true);
     const paths = await backend().GenerateEngagementLetter(req, kind);
-    const list = Array.isArray(paths) ? paths.join(' • ') : '';
-    toast(`Engagement Letter created${list ? `: ${list}` : '.'}`);
+    if (Array.isArray(paths) && paths.length) {
+      await refreshTree(paths[0]);
+      toast(`Engagement Letter saved as ${paths.map(p => p.split(/[\\/]/).pop()).join(' and ')}.`);
+    }
   } catch (e) {
     showError(e);
   } finally {
     buttons.forEach(button => button.disabled = false);
   }
+}
+
+// Letter wording editor (administrators) --------------------------------------
+
+let engagementWordingDraft = null;
+
+const ENGAGEMENT_APPLIES_TO = [
+  ['all', 'Every letter'],
+  ['tax-return', 'Tax returns only'],
+  ['bookkeeping', 'Bookkeeping only'],
+  ['projection', 'Tax projections only'],
+];
+
+function showEngagementWordingEditor() {
+  if (!engagementTemplateInfo) return;
+  engagementWordingDraft = JSON.parse(JSON.stringify(engagementTemplateInfo.template));
+  $('wordingPlaceholders').replaceChildren(...engagementTemplateInfo.placeholders.map(p => {
+    const li = document.createElement('li');
+    const code = document.createElement('code');
+    code.textContent = `{${p.name}}`;
+    li.append(code, ` ${p.meaning}`);
+    return li;
+  }));
+  renderEngagementWordingEditor();
+  $('engagementWordingBackdrop').classList.remove('hidden');
+  setTimeout(() => $('wordingIntro').focus(), 20);
+}
+
+function hideEngagementWordingEditor() {
+  $('engagementWordingBackdrop').classList.add('hidden');
+  engagementWordingDraft = null;
+}
+
+function collectEngagementWording() {
+  const draft = engagementWordingDraft;
+  draft.intro = $('wordingIntro').value;
+  draft.closing = $('wordingClosing').value;
+  $('wordingSections').querySelectorAll('[data-wording-index]').forEach(row => {
+    const s = draft.sections[Number(row.dataset.wordingIndex)];
+    s.title = row.querySelector('.wording-title').value;
+    s.appliesTo = row.querySelector('.wording-applies').value;
+    s.body = row.querySelector('.wording-body').value;
+  });
+  return draft;
+}
+
+function renderEngagementWordingEditor() {
+  const draft = engagementWordingDraft;
+  $('wordingIntro').value = draft.intro;
+  $('wordingClosing').value = draft.closing;
+  const list = $('wordingSections');
+  list.replaceChildren();
+  draft.sections.forEach((section, index) => {
+    const row = document.createElement('div');
+    row.className = 'wording-section';
+    row.dataset.wordingIndex = String(index);
+    const head = document.createElement('div');
+    head.className = 'wording-section-head';
+    const title = Object.assign(document.createElement('input'), { className: 'wording-title', value: section.title, type: 'text' });
+    title.setAttribute('aria-label', `Section ${index + 1} heading`);
+    const applies = document.createElement('select');
+    applies.className = 'wording-applies';
+    applies.setAttribute('aria-label', `Section ${index + 1} applies to`);
+    ENGAGEMENT_APPLIES_TO.forEach(([value, label]) => applies.appendChild(new Option(label, value)));
+    applies.value = section.appliesTo;
+    const buttons = document.createElement('div');
+    buttons.className = 'wording-section-buttons';
+    [['up', '↑', 'Move up', index === 0], ['down', '↓', 'Move down', index === draft.sections.length - 1], ['remove', 'Remove', 'Remove this section', false]].forEach(([action, text, label, disabled]) => {
+      const b = Object.assign(document.createElement('button'), { type: 'button', className: action === 'remove' ? 'danger' : 'secondary', textContent: text, title: label, disabled });
+      b.dataset.wordingAction = action;
+      b.setAttribute('aria-label', label);
+      buttons.appendChild(b);
+    });
+    head.append(title, applies, buttons);
+    const body = Object.assign(document.createElement('textarea'), { className: 'wording-body', value: section.body, rows: 5 });
+    body.setAttribute('aria-label', `Section ${index + 1} text`);
+    row.append(head, body);
+    list.appendChild(row);
+  });
+}
+
+function engagementWordingAction(action, index) {
+  const sections = collectEngagementWording().sections;
+  if (action === 'up' && index > 0) [sections[index - 1], sections[index]] = [sections[index], sections[index - 1]];
+  if (action === 'down' && index < sections.length - 1) [sections[index + 1], sections[index]] = [sections[index], sections[index + 1]];
+  if (action === 'remove') {
+    if (sections.length === 1) { toast('Keep at least one section.', true); return; }
+    if (!confirm(`Remove the section "${sections[index].title || 'Untitled'}"?`)) return;
+    sections.splice(index, 1);
+  }
+  renderEngagementWordingEditor();
+}
+
+function addEngagementWordingSection() {
+  collectEngagementWording().sections.push({ title: 'New section', body: '', appliesTo: 'all' });
+  renderEngagementWordingEditor();
+  const rows = $('wordingSections').querySelectorAll('.wording-title');
+  rows[rows.length - 1]?.select();
+}
+
+async function saveEngagementWording() {
+  await backend().SaveEngagementTemplate(collectEngagementWording());
+  await loadEngagementTemplate();
+  hideEngagementWordingEditor();
+  renderEngagementPreview();
+  toast('Engagement letter wording saved for the whole firm.');
+}
+
+function resetEngagementWordingDraft() {
+  if (!confirm('Replace the wording in this editor with BabyFileCab’s standard wording? Nothing is saved until you click Save.')) return;
+  engagementWordingDraft = JSON.parse(JSON.stringify(engagementTemplateInfo.default));
+  renderEngagementWordingEditor();
 }

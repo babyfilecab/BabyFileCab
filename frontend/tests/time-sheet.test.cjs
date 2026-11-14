@@ -9,7 +9,7 @@ assert(html.includes('id="timeSheetHours"'));
 assert(html.includes('id="timeSheetWork"'));
 assert(html.includes('id="timeSheetWorkOptions"'));
 assert(html.includes('Tax Return Preparation'));
-assert(html.includes('<th>Date</th><th>Client</th><th>Work performed</th><th>Hours</th>'));
+assert(html.includes('<th>Client</th><th>Work performed</th><th>Hours</th><th>Billed</th>'));
 assert(js.includes("entry.work || '—'"));
 assert(js.includes("$('timeSheetWork').value=entry.work || ''"));
 assert(js.includes('SaveTimeSheetEntry(date,clientPath,work,hours)'));
@@ -19,7 +19,7 @@ assert(js.includes('SaveTimeSheetEntry'));
 assert(js.includes('UpdateTimeSheetEntry'));
 assert(js.includes('GetTimeSheetEntries'));
 assert(js.includes('DeleteTimeSheetEntry'));
-assert(js.includes("entry.date === timeSheetSelectedDate"));
+assert(js.includes("filterTimeSheetEntries"));
 assert(js.includes('data-time-entry-edit-id'));
 assert.ok(js.includes('timeSheetSelectedDate = confirmedDate'), 'calendar OK should apply selected date, refresh filtered entries, and close popup');
 

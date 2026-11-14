@@ -63,6 +63,8 @@ async function enterApplication(user) {
   sessionGeneration++;
   hideChangePassword();
   currentUser = user;
+  // Staff can't do things that can't be undone; the backend enforces it too.
+  document.body.classList.toggle('staff-user', !isAdministrator());
   loadShortcutBindings();
   AUTO_LOCK_MS = await backend().GetAutoLockMinutes() * 60 * 1000;
   updateAutoLockMenu();

@@ -6,8 +6,28 @@ import (
 	"time"
 )
 
+// calendarStatuses lists every status a scheduled return can have, in the
+// order a return normally moves through them.
+var calendarStatuses = []string{
+	"drafting", "waiting-on-reports", "extension-filed", "8879-sent",
+	"waiting-for-signature", "signed", "ready-to-e-file", "e-filed",
+	"accepted", "rejected", "completed",
+}
+
+func validCalendarStatus(status string) bool {
+	if status == "" {
+		return true
+	}
+	for _, s := range calendarStatuses {
+		if s == status {
+			return true
+		}
+	}
+	return false
+}
+
 func updateCalendarAssignmentStatus(items []storedFirmCalendarAssignment, date, clientID, status string) error {
-	if status != "" && status != "drafting" && status != "waiting-on-reports" && status != "completed" && status != "8879-sent" && status != "waiting-for-signature" && status != "signed" && status != "ready-to-e-file" {
+	if !validCalendarStatus(status) {
 		return errors.New("invalid calendar status")
 	}
 	for i := range items {

@@ -29,7 +29,8 @@ This is the heart of BabyFileCab.
 - **Previous versions.** Upload a file with the same name and the old copy is
   kept as a previous version you can open or restore.
 - **Recycle Bin.** Deleted files, tax years and clients can be restored for
-  30 days.
+  30 days. Only an administrator can delete a client or remove anything for
+  good.
 - **Find anything.** Global Find searches client names, file names,
   descriptions and keywords across the whole firm. Inside a PDF, Ctrl+F
   highlights every match on the page.
@@ -61,17 +62,31 @@ known limits.
 ## Other tools
 
 - **Firm Calendar:** schedule clients by day and by preparer, and track each
-  return through Drafting, Waiting on Reports, 8879 Sent, Waiting for
-  Signature, Signed, Ready to E-file and Completed.
+  return through Drafting, Waiting on Reports, Extension Filed, 8879 Sent,
+  Waiting for Signature, Signed, Ready to E-file, E-filed, Accepted or
+  Rejected, and Completed. Federal filing deadlines show on the days they
+  fall, moved for weekends and holidays the way the IRS moves them.
 - **Needs Attention:** when you sign in, BabyFileCab lists returns that have
   been stuck waiting for a while or are past their scheduled date, so nothing
   slips through the cracks in the middle of tax season.
-- **Engagement Letters and Invoices:** fill in the client, preparer, service
-  and fee and get a finished PDF or Word document with your firm's logo.
-- **Time Sheet:** log hours worked per client and per day.
-- **Federal Tax Calculator:** quick 2025 and 2026 estimates, including the
-  Child Tax Credit, self-employment tax and quarterly estimated payments.
-- **Currency Converter:** IRS yearly average exchange rates for foreign income.
+- **Engagement Letters:** pick the client, preparer, service and fee and get
+  a finished PDF or Word letter with your firm's logo, saved in the client's
+  folder. Covers individual, amended, trust, partnership, corporate, exempt
+  organization, gift, estate and state returns, bookkeeping and projections.
+  Administrators can rewrite the wording for the whole firm.
+- **Invoices:** as many lines as you need, numbers that run in order
+  (INV-2026-0001, 0002…), and hours pulled straight from the Time Sheet. The
+  Invoices list shows what's unpaid or overdue and lets you mark payments.
+- **Time Sheet:** log hours per client and per day, then look at a week, month
+  or year with totals per client. Administrators can see everyone's time.
+  Export to a spreadsheet; billed hours are marked with the invoice number.
+- **Federal Tax Calculator:** quick 2024, 2025 and 2026 estimates covering
+  itemized or standard deductions, the extra amount for 65+ and blind, the
+  2025–2028 senior, tips and overtime deductions, QBI, qualified dividends,
+  the Net Investment Income Tax, the Child Tax Credit and credit for other
+  dependents, and quarterly payments with the prior-year safe harbor.
+- **Currency Converter:** IRS yearly average rates for income, and the
+  Treasury's December 31 rates for FBAR and Form 8938 balances.
 - **Multiple users:** add Staff and Administrator accounts for everyone in
   your firm. They all share the same client cabinet on that computer.
 - Light and dark themes, and keyboard shortcuts you can remap.
@@ -150,8 +165,8 @@ Press **F1** in the app for the full manual. The ones I use most:
 | `clients.go`, `tree.go`, `documents.go`, `notes.go` | The document cabinet |
 | `recycle.go`, `versions.go`, `inbox.go` | Recycle Bin, previous versions, scan inbox |
 | `preview.go` | Document previews |
-| `calendar*.go`, `timesheet.go` | Firm Calendar and time sheet |
-| `invoice.go`, `engagement_letter.go` | Letters and invoices |
+| `calendar*.go`, `timesheet*.go` | Firm Calendar and time sheet |
+| `invoice*.go`, `engagement_*.go`, `services.go` | Letters, letter wording, invoices and the invoice list |
 | `audit.go`, `audit_sqlite.go` | Audit trail |
 | `updates.go` | Once-a-day check for a newer release |
 | `frontend/dist/js/` | The interface, one file per feature |

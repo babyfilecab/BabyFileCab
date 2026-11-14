@@ -298,7 +298,7 @@ func (a *App) RestoreFromRecycleBin(id string) (string, error) {
 }
 
 func (a *App) DeleteFromRecycleBin(id string) error {
-	if err := a.requireSignedIn(); err != nil {
+	if err := a.requireAdministrator("permanently delete items from the Recycle Bin"); err != nil {
 		return err
 	}
 	a.recycleMu.Lock()
@@ -317,7 +317,7 @@ func (a *App) DeleteFromRecycleBin(id string) error {
 }
 
 func (a *App) EmptyRecycleBin() error {
-	if err := a.requireSignedIn(); err != nil {
+	if err := a.requireAdministrator("empty the Recycle Bin"); err != nil {
 		return err
 	}
 	a.recycleMu.Lock()

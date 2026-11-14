@@ -118,8 +118,8 @@ func (a *App) EngagementLetterDefaultOutput(clientPath, service, taxYear string)
 	if err != nil {
 		return "", err
 	}
-	folder := filepath.Join(a.dataRoot, "Generated Forms", "Engagement Letters")
-	if err := os.MkdirAll(folder, 0700); err != nil {
+	folder, err := a.clientOutputFolder(clientPath, taxYear)
+	if err != nil {
 		return "", err
 	}
 	name := engagementSafeFilename(props.Name)
@@ -156,9 +156,10 @@ func (a *App) ChooseEngagementLetterSavePath(outputKind, clientPath, service, ta
 		filter = wailsruntime.FileFilter{DisplayName: "Microsoft Word Document (*.docx)", Pattern: "*.docx"}
 	}
 	chosen, err := wailsruntime.SaveFileDialog(a.ctx, wailsruntime.SaveDialogOptions{
-		Title:           title,
-		DefaultFilename: filepath.Base(stem + ext),
-		Filters:         []wailsruntime.FileFilter{filter},
+		Title:            title,
+		DefaultDirectory: filepath.Dir(defaultPDF),
+		DefaultFilename:  filepath.Base(stem + ext),
+		Filters:          []wailsruntime.FileFilter{filter},
 	})
 	if err != nil {
 		return "", err
@@ -269,14 +270,7 @@ func (a *App) buildEngagementLetterData(req EngagementLetterRequest) (engagement
 		return engagementLetterData{}, err
 	}
 	service := strings.TrimSpace(req.Service)
-	validService := false
-	for _, item := range []string{"1040", "1041", "1065", "1120S", "1120", "Bookkeeping", "Tax Projection"} {
-		if service == item {
-			validService = true
-			break
-		}
-	}
-	if !validService {
+	if _, ok := findFirmService(service); !ok {
 		return engagementLetterData{}, errors.New("select a valid Engagement Letter service")
 	}
 	taxYear := strings.TrimSpace(req.TaxYear)
@@ -346,6 +340,7 @@ func (a *App) buildEngagementLetterData(req EngagementLetterRequest) (engagement
 		}
 	}
 
+	template, _ := a.loadEngagementTemplate()
 	logoPath := a.engagementLetterLogoPath()
 	logoWidth, logoHeight := 0, 0
 	if logoBytes, openErr := a.secureReadFile(logoPath); openErr == nil {
@@ -365,28 +360,15 @@ func (a *App) buildEngagementLetterData(req EngagementLetterRequest) (engagement
 		Service: service, ServiceDesc: engagementServiceDescription(service), TaxYear: taxYear,
 		FeeType: feeType, FeeValue: feeValue, LetterDate: dateText,
 		LogoPath: logoPath, LogoWidth: logoWidth, LogoHeight: logoHeight,
+		Template: template,
 	}, nil
 }
 
 func engagementServiceDescription(service string) string {
-	switch service {
-	case "1040":
-		return "Form 1040 U.S. Individual Income Tax Return"
-	case "1041":
-		return "Form 1041 U.S. Income Tax Return for Estates and Trusts"
-	case "1065":
-		return "Form 1065 U.S. Return of Partnership Income"
-	case "1120S":
-		return "Form 1120-S U.S. Income Tax Return for an S Corporation"
-	case "1120":
-		return "Form 1120 U.S. Corporation Income Tax Return"
-	case "Bookkeeping":
-		return "bookkeeping services"
-	case "Tax Projection":
-		return "tax projection services"
-	default:
-		return service
+	if s, ok := findFirmService(service); ok {
+		return s.Description
 	}
+	return service
 }
 
 func engagementCityStateZIP(user UserProfile) string {
@@ -448,60 +430,12 @@ func engagementSafeFilename(value string) string {
 }
 
 func engagementLetterSections(data engagementLetterData) (string, []engagementLetterSection, string) {
-	company := data.CompanyName
-	if company == "" {
-		company = "the Firm"
-	}
-	client := data.ClientName
-	if client == "" {
-		client = "the Client"
-	}
-	intro := fmt.Sprintf("Thank you for engaging %s. This Engagement Letter confirms the terms, scope, and limitations of our engagement with %s for %s for tax year or period %s. Please review this letter carefully because it defines the responsibilities of both the Client and the Firm.", company, client, data.ServiceDesc, data.TaxYear)
-
-	var scope string
-	if engagementIsTaxReturnService(data.Service) {
-		scope = fmt.Sprintf("%s will prepare the federal %s identified above from information, books, records, schedules, financial statements, and representations provided by %s. State, local, amended, informational, payroll, sales tax, foreign reporting, bookkeeping, notice response, audit, tax planning, tax projection, and other services are outside this engagement unless separately agreed to in writing.", company, data.ServiceDesc, client)
-	} else if data.Service == "Bookkeeping" {
-		scope = fmt.Sprintf("%s will provide bookkeeping services for %s using bank data, source documents, account information, classifications, instructions, and other records supplied or approved by the Client. The engagement may include recording transactions, reconciliations, and preparation of management reports or financial statements from those records. Unless separately agreed in writing, this engagement does not include an audit, review, compilation, tax return preparation, payroll, sales tax, or assurance service.", company, client)
-	} else {
-		scope = fmt.Sprintf("%s will prepare tax projections for %s using the income, deduction, withholding, estimated payment, transaction, and other assumptions supplied by the Client. A projection is an estimate based on information available at the time and is not a guarantee of the Client's final tax liability. Actual results may differ because of later transactions, incomplete information, changes in law, or other events.", company, client)
-	}
-
-	clientResponsibilities := fmt.Sprintf("%s is responsible for providing complete, accurate, and timely information and for maintaining the books, records, source documents, and supporting evidence required for the services and by applicable tax or regulatory authorities. The Client is responsible for the accuracy and completeness of all financial statements, trial balances, bookkeeping records, schedules, tax documents, classifications, estimates, and representations provided to the Firm, including information received from third parties. The Client must disclose all material facts and must review all returns, reports, projections, or other work product before relying on, signing, or filing it.", client)
-
-	firmResponsibilities := fmt.Sprintf("%s will perform the agreed services using the information, financial statements, books, records, schedules, source documents, and representations supplied by %s or by third parties designated by the Client. Unless a separate written engagement expressly states otherwise, our services are not an audit, review, examination, agreed-upon procedures engagement, or other assurance service, and we will not independently verify or authenticate the information provided to us. We have no duty to discover fraud, embezzlement, misappropriation, illegal acts, errors, omissions, or weaknesses in internal control. Any financial statements, reports, or schedules used or produced from Client-provided accounting information remain the responsibility of Client management, including responsibility for their completeness, accuracy, accounting policies, classifications, estimates, and underlying records. Our work does not relieve the Client of any management, reporting, filing, payment, or recordkeeping responsibility.", company, client)
-
-	reliance := fmt.Sprintf("%s may rely on information supplied by %s without independent verification unless we expressly agree otherwise in writing. Consistent with applicable professional standards, the Firm may make reasonable inquiries, request clarification, or ask for additional supporting documentation when information provided appears incorrect, incomplete, inconsistent, unusual, or otherwise requires clarification, and the Firm may suspend or decline to complete affected work until it is reasonably satisfied that sufficient relevant information has been provided. These inquiries do not constitute an audit, review, examination, or independent verification of the Client's records and do not shift responsibility for the accuracy and completeness of those records from the Client to the Firm. To the fullest extent permitted by applicable law, the Firm will not be responsible for taxes, interest, penalties, losses, damages, costs, missed deadlines, or other consequences arising from incomplete, inaccurate, misclassified, misleading, or late information; Client-prepared financial statements or bookkeeping records; data supplied by banks, payroll providers, investment firms, software systems, or other third parties; the Client's failure to disclose material facts; or the Client's failure to timely act on information or recommendations provided by the Firm. Nothing in this Engagement Letter is intended to limit any responsibility or liability that cannot lawfully be limited or waived.", company, client)
-
-	sections := []engagementLetterSection{
-		{Title: "Scope of Services", Body: scope},
-		{Title: "Client Responsibilities", Body: clientResponsibilities},
-		{Title: "Our Responsibilities and Reliance on Client-Provided Information", Body: firmResponsibilities},
-		{Title: "Reliance, Limitations, and Risk Allocation", Body: reliance},
-	}
-	if engagementIsTaxReturnService(data.Service) {
-		sections = append(sections,
-			engagementLetterSection{Title: "Tax Positions and Professional Judgment", Body: fmt.Sprintf("%s may ask questions or request additional documentation when information appears incomplete, inconsistent, or unclear. The Firm may decline to take a tax position that it believes lacks adequate support or would cause the Firm to violate applicable law, regulations, or professional standards. The Client remains responsible for the positions reported on the return and for the taxes, interest, and penalties legally due.", company)},
-			engagementLetterSection{Title: "Electronic Filing and Authorization", Body: fmt.Sprintf("If the return is eligible for electronic filing, %s will not transmit it until the Firm receives the required signed e-file authorization. Authorization to e-file does not transfer responsibility for the return from the Client to the Firm. The Client is responsible for reviewing the completed return and confirming that the information is complete and accurate before signing the authorization.", company)},
-		)
-	}
-	sections = append(sections,
-		engagementLetterSection{Title: "Deadlines, Extensions, and Client Action", Body: fmt.Sprintf("%s agrees to provide requested information sufficiently in advance of applicable deadlines. The Firm cannot guarantee timely completion when information is incomplete or received late. When applicable, an extension of time to file is not an extension of time to pay. Tax payments, estimated payments, elections, signatures, approvals, and other Client actions remain the Client's responsibility unless a separate written agreement specifically provides otherwise.", client)},
-		engagementLetterSection{Title: "Fees and Additional Services", Body: fmt.Sprintf("The agreed fee arrangement for this engagement is %s: %s. This fee applies only to the Service identified in this Engagement Letter and is based on the scope, facts, records, and level of professional time reasonably anticipated when this engagement is accepted. If additional information, records, reconciliation, correction, research, analysis, consultation, or professional time is required beyond what was reasonably contemplated, or if the scope or complexity of the engagement materially changes, the Firm will discuss with the Client an additional flat fee or hourly rate before undertaking material out-of-scope work. Any such additional services and related compensation must be mutually agreed upon by the Client and the Firm, which agreement may be documented in writing, including by email, supplemental engagement terms, or other written authorization. Additional work may include amended returns, notices, audit or examination assistance, bookkeeping cleanup, tax research, tax planning, tax projections, or other services outside the stated scope. The Firm may pause work when requested information, authorization, or payment is outstanding, and resulting delays may require revised completion dates and additional fees.", data.FeeType, data.FeeValue)},
-		engagementLetterSection{Title: "Records, Confidentiality, and Third-Party Systems", Body: fmt.Sprintf("%s will handle Client information in accordance with applicable professional and legal obligations. The Client should retain original records and supporting documentation. Electronic communication, portals, financial institutions, software providers, and other third-party systems may be used in performing the engagement; those systems are outside the Firm's direct control. The Firm is not responsible for the acts, omissions, outages, or security failures of third-party providers except to the extent responsibility cannot legally be disclaimed.", company)},
-		engagementLetterSection{Title: "Termination", Body: fmt.Sprintf("Either %s or %s may terminate this engagement by written notice. The Client remains responsible for fees earned and costs incurred through the termination date and for all filing, payment, recordkeeping, and other deadlines after termination.", client, company)},
-	)
-	closing := fmt.Sprintf("If the terms above correctly describe your understanding of this engagement, please sign below. Your signature confirms that %s has read, understands, and accepts this Engagement Letter with %s.", client, company)
-	return intro, sections, closing
+	return renderEngagementTemplate(data.Template, data)
 }
 
 func engagementIsTaxReturnService(service string) bool {
-	switch service {
-	case "1040", "1041", "1065", "1120S", "1120":
-		return true
-	default:
-		return false
-	}
+	s, ok := findFirmService(service)
+	return ok && s.Kind == "tax-return"
 }
 
 func engagementPDFBlocks(data engagementLetterData) []engagementPDFBlock {

@@ -1,6 +1,7 @@
 // Wires every button and input to its handler.
 
 function wireEvents() {
+  buildFirmCalendarStatusMenu();
   wireRecycleBin();
   wireInbox();
   wireBackups();
@@ -27,6 +28,8 @@ function wireEvents() {
   $('timeSheetDateConfirm').addEventListener('click', acceptTimeSheetCalendarDate);
   $('timeSheetCalendarPopover').addEventListener('click', e => e.stopPropagation());
   $('timeSheetAdd').addEventListener('click', addTimeSheetEntry);
+  ['timeSheetPeriod', 'timeSheetPerson', 'timeSheetClientFilter'].forEach(id => $(id).addEventListener('change', () => { updateTimeSheetDateStatus(); renderTimeSheet(); }));
+  $('timeSheetExport').addEventListener('click', () => call(exportTimeSheet));
   $('timeSheetCancelEdit').addEventListener('click', () => cancelTimeSheetEdit());
   $('timeSheetHours').addEventListener('keydown', e => { if (e.key === 'Enter') addTimeSheetEntry(); });
   $('timeSheetRows').addEventListener('click', e => {
@@ -228,20 +231,51 @@ function wireEvents() {
   $('engagementRemoveLogo').addEventListener('click', () => call(removeEngagementFirmLogo));
   $('engagementGeneratePDF').addEventListener('click', () => generateEngagementLetter('pdf'));
   $('engagementGenerateWord').addEventListener('click', () => generateEngagementLetter('docx'));
+  $('engagementEditWording').addEventListener('click', showEngagementWordingEditor);
+  $('wordingCloseTop').addEventListener('click', hideEngagementWordingEditor);
+  $('wordingCancel').addEventListener('click', hideEngagementWordingEditor);
+  $('wordingSave').addEventListener('click', () => call(saveEngagementWording));
+  $('wordingReset').addEventListener('click', resetEngagementWordingDraft);
+  $('wordingAddSection').addEventListener('click', addEngagementWordingSection);
+  $('wordingSections').addEventListener('click', e => {
+    const button = e.target.closest('[data-wording-action]');
+    if (button) engagementWordingAction(button.dataset.wordingAction, Number(button.closest('[data-wording-index]').dataset.wordingIndex));
+  });
   $('invoiceClose').addEventListener('click', hideInvoiceGenerator);
   $('invoiceCloseTop').addEventListener('click', hideInvoiceGenerator);
   $('invoiceBackdrop').addEventListener('click', e => { if (e.target === $('invoiceBackdrop')) hideInvoiceGenerator(); });
   $('invoiceClient').addEventListener('change', () => call(async () => { await invoiceSelectionChanged({ client: true }); }));
   $('invoicePreparer').addEventListener('change', () => invoiceSelectionChanged({ preparer: true }));
-  $('invoiceService').addEventListener('change', renderInvoicePreview);
-  $('invoiceTaxYear').addEventListener('change', renderInvoicePreview);
+  $('invoiceService').addEventListener('change', invoiceServiceChanged);
+  $('invoiceTaxYear').addEventListener('change', invoiceServiceChanged);
   $('invoiceNumber').addEventListener('input', renderInvoicePreview);
   $('invoiceDate').addEventListener('change', renderInvoicePreview);
   $('invoiceDueDate').addEventListener('change', renderInvoicePreview);
-  $('invoiceFeeType').addEventListener('change', updateInvoiceFeeUI);
-  $('invoiceFeeValue').addEventListener('input', renderInvoicePreview);
-  $('invoiceHours').addEventListener('input', renderInvoicePreview);
-  $('invoiceDescription').addEventListener('input', renderInvoicePreview);
+  $('invoiceLines').addEventListener('input', e => {
+    const row = e.target.closest('[data-invoice-line]');
+    if (!row) return;
+    if (e.target.classList.contains('invoice-line-desc')) delete invoiceLines[Number(row.dataset.invoiceLine)].autoDescription;
+    invoiceLineEdited(row);
+  });
+  $('invoiceLines').addEventListener('click', e => {
+    const button = e.target.closest('.invoice-line-remove');
+    if (button) removeInvoiceLine(Number(button.closest('[data-invoice-line]').dataset.invoiceLine));
+  });
+  $('invoiceAddLine').addEventListener('click', () => addInvoiceLine());
+  $('invoiceAddTime').addEventListener('click', () => call(showInvoiceTimePicker));
+  $('invoiceTimeCancel').addEventListener('click', hideInvoiceTimePicker);
+  $('invoiceTimeAdd').addEventListener('click', () => { try { addInvoiceTimeLines(); } catch (e) { showError(e); } });
+  $('invoiceShowList').addEventListener('click', () => call(showInvoiceList));
+  $('invoiceListClose').addEventListener('click', hideInvoiceList);
+  $('invoiceListCloseTop').addEventListener('click', hideInvoiceList);
+  $('invoiceListFilter').addEventListener('change', renderInvoiceList);
+  $('invoiceListSearch').addEventListener('input', renderInvoiceList);
+  $('invoiceListBody').addEventListener('click', e => {
+    const paid = e.target.closest('[data-invoice-paid]');
+    if (paid) call(() => toggleInvoicePaid(paid.dataset.invoicePaid));
+    const open = e.target.closest('[data-invoice-open]');
+    if (open) call(() => openInvoiceFile(open.dataset.invoiceOpen));
+  });
   $('invoiceNotes').addEventListener('input', renderInvoicePreview);
   $('invoiceBrowseLogo').addEventListener('click', () => call(browseInvoiceLogo));
   $('invoiceRemoveLogo').addEventListener('click', () => call(removeInvoiceLogo));
@@ -256,6 +290,7 @@ function wireEvents() {
   $('currencyConverterClose').addEventListener('click', hideCurrencyConverter);
   $('currencyConverterCloseTop').addEventListener('click', hideCurrencyConverter);
   $('currencyConverterBackdrop').addEventListener('click', e => { if (e.target === $('currencyConverterBackdrop')) hideCurrencyConverter(); });
+  $('currencyConverterRateType').addEventListener('change', updateCurrencyConverterUI);
   $('currencyConverterYear').addEventListener('change', updateCurrencyConverterUI);
   $('currencyConverterDirection').addEventListener('change', updateCurrencyConverterUI);
   $('currencyConverterCurrency').addEventListener('change', updateCurrencyConverterUI);
@@ -264,7 +299,7 @@ function wireEvents() {
   $('currencyConverterCalculate').addEventListener('click', () => calculateCurrencyConversion(true));
   $('currencyConverterReset').addEventListener('click', resetCurrencyConverter);
   $('currencyConverterOpenIRS').addEventListener('click', async () => {
-    try { await backend().OpenIRSCurrencyExchangeRatesPage(); } catch (e) { showError(e); }
+    try { await backend().OpenIRSCurrencyExchangeRatesPage(currencyRateType()); } catch (e) { showError(e); }
   });
   $('taxCalculatorClose').addEventListener('click', hideTaxCalculator);
   $('taxCalculatorCloseTop').addEventListener('click', hideTaxCalculator);
@@ -365,7 +400,7 @@ function wireEvents() {
     if (doc) await openFirmCalendarDocument(doc.dataset.calendarDocumentPath);
   });
   $('firmCalendarOpenClient').addEventListener('click', openFirmCalendarClientInTree);
-  ['taxWages', 'taxSelfEmployment', 'taxInterest', 'taxShortCapital', 'taxLongCapital'].forEach(id => {
+  TAX_INPUT_IDS.forEach(id => {
     $(id).addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -473,6 +508,9 @@ function wireEvents() {
     if (key === 'Escape') {
       if (!$('vaultEnrollmentBackdrop').classList.contains('hidden')) { e.preventDefault(); hideVaultEnrollment(); return; }
       if (!$('userManualBackdrop').classList.contains('hidden')) { e.preventDefault(); hideUserManual(); return; }
+      if (!$('engagementWordingBackdrop').classList.contains('hidden')) { e.preventDefault(); hideEngagementWordingEditor(); return; }
+      if (!$('invoiceTimeBackdrop').classList.contains('hidden')) { e.preventDefault(); hideInvoiceTimePicker(); return; }
+      if (!$('invoiceListBackdrop').classList.contains('hidden')) { e.preventDefault(); hideInvoiceList(); return; }
       if (!$('engagementLetterBackdrop').classList.contains('hidden')) { e.preventDefault(); hideEngagementLetter(); return; }
       if (!$('taxCalculatorBackdrop').classList.contains('hidden')) { e.preventDefault(); hideTaxCalculator(); return; }
       if (!$('firmCalendarBackdrop').classList.contains('hidden')) { e.preventDefault(); hideFirmCalendar(); return; }

@@ -819,3 +819,17 @@ func pbkdf2SHA256(password, salt []byte, iterations, keyLength int) []byte {
 	}
 	return result[:keyLength]
 }
+
+// requireAdministrator stops staff accounts from doing things that can't be
+// undone. action finishes the sentence "only an administrator can ...".
+func (a *App) requireAdministrator(action string) error {
+	if err := a.requireSignedIn(); err != nil {
+		return err
+	}
+	a.authMu.RLock()
+	defer a.authMu.RUnlock()
+	if a.currentUser == nil || !strings.EqualFold(a.currentUser.Role, "administrator") {
+		return errors.New("only an administrator can " + action)
+	}
+	return nil
+}

@@ -385,3 +385,80 @@ tr:first-child { background: var(--panel-2); font-weight: 600; }
 .update-banner button { padding: 5px 12px; font-size: 12.5px; }
 .update-banner.hidden { display: none; }
 :root[data-theme="dark"] .update-banner { border-color: rgba(59,130,246,.35); }
+
+/* Staff accounts: hide actions only an administrator may take. */
+body.staff-user .admin-only { display: none !important; }
+body:not(.staff-user) .staff-only { display: none !important; }
+.recycle-bin-staff-note { margin: 0 auto 0 0; font-size: 12px; color: var(--muted, #667085); align-self: center; }
+
+/* Engagement letter wording editor */
+.engagement-heading-buttons { display: flex; gap: 8px; align-items: flex-start; }
+.wording-modal { width: min(920px, 94vw); max-height: 90vh; display: flex; flex-direction: column; }
+.wording-scroll { overflow: auto; padding-right: 4px; flex: 1; }
+.wording-label { display: block; margin: 14px 0 6px; font-weight: 600; font-size: 13px; }
+.wording-scroll textarea { width: 100%; box-sizing: border-box; font: inherit; font-size: 13px; line-height: 1.45; resize: vertical; }
+.wording-section { border: 1px solid var(--line, #e2e8f0); border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+.wording-section-head { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+.wording-section-head .wording-title { flex: 1; font-weight: 600; }
+.wording-section-head .wording-applies { width: 170px; }
+.wording-section-buttons { display: flex; gap: 4px; }
+.wording-section-buttons button { padding: 4px 8px; }
+.wording-help { margin-bottom: 4px; font-size: 13px; }
+.wording-help ul { margin: 6px 0 0; padding-left: 18px; }
+.wording-help code { font-weight: 600; }
+
+/* Dialogs opened from inside another dialog stay on top of it. */
+#invoiceTimeBackdrop, #invoiceListBackdrop, #engagementWordingBackdrop { z-index: 1050; }
+#modalBackdrop { z-index: 1100; }
+
+/* Invoice lines */
+.invoice-lines-head, .invoice-line-edit { display: grid; grid-template-columns: minmax(0, 1fr) 84px 110px 96px 34px; gap: 6px; align-items: center; }
+.invoice-lines-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); margin-bottom: 4px; }
+.invoice-lines-head span:nth-child(4), .invoice-line-amount { text-align: right; }
+.invoice-line-edit { margin-bottom: 6px; }
+.invoice-line-edit input { min-width: 0; width: 100%; box-sizing: border-box; }
+.invoice-line-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
+.invoice-line-remove { padding: 4px 0; }
+.invoice-line-buttons { display: flex; gap: 8px; margin: 4px 0 6px; flex-wrap: wrap; }
+.invoice-time-modal { width: min(620px, 94vw); }
+.invoice-time-rate { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.invoice-time-rate label { font-weight: 600; font-size: 13px; }
+.invoice-time-rate .engagement-money-input { width: 150px; }
+.invoice-time-combine { font-weight: 400 !important; display: flex; gap: 6px; align-items: center; }
+.invoice-time-combine input { width: auto; }
+.invoice-time-list { list-style: none; margin: 0; padding: 0; max-height: 45vh; overflow: auto; border: 1px solid var(--line, #e2e8f0); border-radius: 8px; }
+.invoice-time-list li { border-bottom: 1px solid var(--line, #e2e8f0); }
+.invoice-time-list li:last-child { border-bottom: 0; }
+.invoice-time-list label { display: flex; gap: 10px; padding: 8px 10px; font-size: 13px; cursor: pointer; align-items: center; }
+.invoice-time-list input { width: auto; }
+.invoice-list-modal { width: min(980px, 95vw); max-height: 90vh; display: flex; flex-direction: column; }
+.invoice-list-filters { display: flex; gap: 8px; margin-bottom: 10px; }
+.invoice-list-filters select { width: 170px; }
+.invoice-list-filters input { flex: 1; }
+.invoice-list-scroll { overflow: auto; flex: 1; }
+.invoice-list-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.invoice-list-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line, #e2e8f0); position: sticky; top: 0; background: #fff; }
+:root[data-theme="dark"] .invoice-list-table th { background: var(--panel); }
+.invoice-list-table td { padding: 7px 8px; border-bottom: 1px solid var(--line, #e2e8f0); }
+.invoice-list-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.invoice-list-actions { white-space: nowrap; text-align: right; }
+.invoice-list-actions button { padding: 3px 8px; margin-left: 4px; font-size: 12px; }
+.invoice-paid { color: #16813c; }
+.invoice-overdue { color: #c0262d; font-weight: 600; }
+.invoice-unpaid { color: #946200; }
+:root[data-theme="dark"] .invoice-paid { color: #6ee7a0; }
+:root[data-theme="dark"] .invoice-overdue { color: #fca5a5; }
+:root[data-theme="dark"] .invoice-unpaid { color: #fcd34d; }
+
+/* Time Sheet view bar and totals */
+.time-sheet-view-bar { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin: 8px 0; }
+.time-sheet-view-bar label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.time-sheet-view-bar select { min-width: 150px; }
+.time-sheet-view-bar button { margin-left: auto; }
+.time-sheet-client-totals { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
+.time-sheet-client-totals span { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--panel-2); color: var(--text-2); }
+.time-sheet-person-col { display: none; }
+.time-sheet-show-person .time-sheet-person-col { display: table-cell; }
+.time-sheet-billed { color: #16813c; font-size: 12px; }
+.time-sheet-unbilled { color: var(--muted); }
+:root[data-theme="dark"] .time-sheet-billed { color: #6ee7a0; }

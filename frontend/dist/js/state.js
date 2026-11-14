@@ -30,6 +30,10 @@ let clientPickerItems = [];
 let clientFormMode = 'new';
 let clientFormClient = null;
 let currentUser = null;
+
+function isAdministrator() {
+  return String(currentUser?.role || '').toLowerCase() === 'administrator';
+}
 let sessionGeneration = 0;
 let pendingVaultEnrollmentUser = '';
 let lastDesktopInput = Date.now();

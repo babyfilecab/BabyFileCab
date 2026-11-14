@@ -160,6 +160,10 @@ func (a *App) UpdateTimeSheetEntry(id, date, clientPath, work string, hours floa
 	updated := false
 	for i := range items {
 		if items[i].ID == id && strings.EqualFold(items[i].Username, username) {
+			if items[i].InvoiceNumber != "" {
+				a.timesheetMu.Unlock()
+				return nil, fmt.Errorf("these hours were billed on invoice %s, so they can't be changed", items[i].InvoiceNumber)
+			}
 			items[i].Date = date
 			items[i].ClientID = props.ClientID
 			items[i].ClientName = props.Name
@@ -208,6 +212,10 @@ func (a *App) DeleteTimeSheetEntry(id string) ([]TimeSheetEntry, error) {
 	removed := false
 	for _, item := range items {
 		if item.ID == id && strings.EqualFold(item.Username, username) {
+			if item.InvoiceNumber != "" {
+				a.timesheetMu.Unlock()
+				return nil, fmt.Errorf("these hours were billed on invoice %s, so they can't be deleted", item.InvoiceNumber)
+			}
 			removed = true
 			continue
 		}

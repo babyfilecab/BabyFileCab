@@ -187,6 +187,9 @@ async function handleMenuAction(action) {
         await backend().LogAppEvent('Create Invoice opened', 'Tools menu');
         await showInvoiceGenerator();
         break;
+      case 'invoice-list':
+        await showInvoiceList();
+        break;
       case 'currency-converter':
         await backend().LogAppEvent('Currency Converter opened', 'IRS yearly-average currency exchange rates');
         showCurrencyConverter();

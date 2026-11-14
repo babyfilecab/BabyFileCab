@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -16,7 +17,7 @@ import (
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-func (a *App) ChooseInvoiceSavePath(outputKind, clientPath, invoiceNumber string) (string, error) {
+func (a *App) ChooseInvoiceSavePath(outputKind, clientPath, taxYear, invoiceNumber string) (string, error) {
 	if err := a.requireSignedIn(); err != nil {
 		return "", err
 	}
@@ -28,8 +29,8 @@ func (a *App) ChooseInvoiceSavePath(outputKind, clientPath, invoiceNumber string
 	if err != nil {
 		return "", err
 	}
-	folder := filepath.Join(a.dataRoot, "Generated Forms", "Invoices")
-	if err := os.MkdirAll(folder, 0700); err != nil {
+	folder, err := a.clientOutputFolder(clientPath, taxYear)
+	if err != nil {
 		return "", err
 	}
 	clientName := engagementSafeFilename(props.Name)
@@ -85,9 +86,12 @@ func (a *App) GenerateInvoice(req InvoiceRequest, outputKind string) ([]string, 
 	if outputKind != "pdf" && outputKind != "docx" {
 		return nil, errors.New("choose PDF or Microsoft Word")
 	}
+	if err := a.checkInvoiceNumberFree(data.InvoiceNumber, data.ClientID); err != nil {
+		return nil, err
+	}
 	outputPath := strings.TrimSpace(req.OutputPath)
 	if outputPath == "" {
-		outputPath, err = a.ChooseInvoiceSavePath(outputKind, data.ClientPath, data.InvoiceNumber)
+		outputPath, err = a.ChooseInvoiceSavePath(outputKind, data.ClientPath, data.TaxYear, data.InvoiceNumber)
 		if err != nil {
 			return nil, err
 		}
@@ -117,7 +121,13 @@ func (a *App) GenerateInvoice(req InvoiceRequest, outputKind string) ([]string, 
 			return nil, fmt.Errorf("create invoice Word document: %w", err)
 		}
 	}
-	detail := fmt.Sprintf("Invoice %s; service %s; tax year %s; %s; total $%.2f; preparer %s; format %s", data.InvoiceNumber, data.Service, data.TaxYear, data.FeeType, data.Total, data.PreparerName, outputKind)
+	detail := fmt.Sprintf("Invoice %s; service %s; tax year %s; %d line(s); total %s; preparer %s; format %s", data.InvoiceNumber, data.Service, data.TaxYear, len(data.Lines), invoiceMoneyText(data.Total), data.PreparerName, outputKind)
+	if err := a.recordInvoice(data, strings.TrimSpace(req.InvoiceDate), strings.TrimSpace(req.DueDate), outputPath); err != nil {
+		return nil, fmt.Errorf("the invoice was saved but couldn't be added to the invoice list: %w", err)
+	}
+	if err := a.markTimeEntriesBilled(req.TimeEntryIDs, data.ClientID, data.InvoiceNumber); err != nil {
+		return nil, fmt.Errorf("the invoice was saved but the Time Sheet hours couldn't be marked as billed: %w", err)
+	}
 	_ = a.appendAudit(data.ClientPath, "Invoice generated", detail)
 	_ = a.appendAppAuditCurrent(data.ClientID, data.ClientName, "Invoice generated", detail)
 	_ = a.openGeneratedOutput(outputPath)
@@ -130,14 +140,7 @@ func (a *App) buildInvoiceData(req InvoiceRequest) (invoiceData, error) {
 		return invoiceData{}, err
 	}
 	service := strings.TrimSpace(req.Service)
-	validService := false
-	for _, item := range []string{"1040", "1041", "1065", "1120S", "1120", "Bookkeeping", "Tax Projection"} {
-		if service == item {
-			validService = true
-			break
-		}
-	}
-	if !validService {
+	if _, ok := findFirmService(service); !ok {
 		return invoiceData{}, errors.New("select a valid invoice service")
 	}
 	taxYear := strings.TrimSpace(req.TaxYear)
@@ -160,20 +163,9 @@ func (a *App) buildInvoiceData(req InvoiceRequest) (invoiceData, error) {
 	if dueDate.Before(invoiceDate) {
 		return invoiceData{}, errors.New("the due date cannot be earlier than the invoice date")
 	}
-	feeType := strings.TrimSpace(req.FeeType)
-	if feeType != "Flat Fee" && feeType != "Hourly Rate" {
-		return invoiceData{}, errors.New("select Flat Fee or Hourly Rate")
-	}
-	rate, err := invoiceParseNumber(req.FeeValue)
-	if err != nil || rate <= 0 {
-		return invoiceData{}, errors.New("enter a valid fee or hourly rate greater than zero")
-	}
-	hours := 1.0
-	if feeType == "Hourly Rate" {
-		hours, err = invoiceParseNumber(req.Hours)
-		if err != nil || hours <= 0 {
-			return invoiceData{}, errors.New("enter valid hours greater than zero")
-		}
+	lines, total, err := invoiceLinesFrom(req.Lines)
+	if err != nil {
+		return invoiceData{}, err
 	}
 
 	users, err := a.ListCompanyUsers()
@@ -216,11 +208,7 @@ func (a *App) buildInvoiceData(req InvoiceRequest) (invoiceData, error) {
 	if phone == "" {
 		phone = strings.TrimSpace(preparer.Phone)
 	}
-	description := strings.TrimSpace(req.Description)
 	serviceDesc := engagementServiceDescription(service)
-	if description == "" {
-		description = fmt.Sprintf("%s - Tax Year %s", serviceDesc, taxYear)
-	}
 	notes := strings.TrimSpace(req.Notes)
 	if notes == "" {
 		notes = "Thank you for your business."
@@ -236,19 +224,61 @@ func (a *App) buildInvoiceData(req InvoiceRequest) (invoiceData, error) {
 	} else {
 		logoPath = ""
 	}
-	total := rate
-	if feeType == "Hourly Rate" {
-		total = rate * hours
-	}
 	return invoiceData{
 		CompanyName: companyName, ClientID: props.ClientID, ClientName: props.Name, ClientPath: props.Path,
 		ClientAddress: props.Address, ClientPhone: props.Phone, ClientEmail: props.Email,
 		PreparerName: preparerName, PreparerAddress: preparerAddress, PreparerPhone: phone, PreparerEmail: strings.TrimSpace(preparer.Email),
 		Service: service, ServiceDesc: serviceDesc, TaxYear: taxYear, InvoiceNumber: invoiceNumber,
 		InvoiceDate: invoiceDate.Format("January 2, 2006"), DueDate: dueDate.Format("January 2, 2006"),
-		FeeType: feeType, Rate: rate, Hours: hours, Total: total, Description: description, Notes: notes,
+		Lines: lines, Total: total, Notes: notes,
 		LogoPath: logoPath, LogoWidth: logoWidth, LogoHeight: logoHeight,
 	}, nil
+}
+
+const maxInvoiceLines = 40
+
+// invoiceLinesFrom checks the lines and works out each amount, rounded to
+// the cent, and the total.
+func invoiceLinesFrom(in []InvoiceLineInput) ([]invoiceLine, float64, error) {
+	if len(in) == 0 {
+		return nil, 0, errors.New("add at least one line to the invoice")
+	}
+	if len(in) > maxInvoiceLines {
+		return nil, 0, fmt.Errorf("an invoice can have at most %d lines", maxInvoiceLines)
+	}
+	lines := make([]invoiceLine, 0, len(in))
+	total := 0.0
+	for i, l := range in {
+		desc := strings.TrimSpace(l.Description)
+		if desc == "" {
+			return nil, 0, fmt.Errorf("line %d needs a description", i+1)
+		}
+		if len(desc) > 500 {
+			return nil, 0, fmt.Errorf("line %d's description is too long", i+1)
+		}
+		if !(l.Quantity > 0) || l.Quantity > 100000 {
+			return nil, 0, fmt.Errorf("line %d needs a quantity or hours greater than zero", i+1)
+		}
+		if l.Rate < 0 || l.Rate > 10000000 || l.Rate != l.Rate {
+			return nil, 0, fmt.Errorf("line %d has an invalid rate", i+1)
+		}
+		amount := math.Round(l.Quantity*l.Rate*100) / 100
+		lines = append(lines, invoiceLine{Description: desc, Quantity: l.Quantity, Rate: l.Rate, Amount: amount})
+		total += amount
+	}
+	total = math.Round(total*100) / 100
+	if total <= 0 {
+		return nil, 0, errors.New("the invoice total must be more than $0.00")
+	}
+	return lines, total, nil
+}
+
+// invoiceQuantityText shows 1 as "1" and 2.5 hours as "2.50".
+func invoiceQuantityText(q float64) string {
+	if q == math.Trunc(q) {
+		return strconv.FormatFloat(q, 'f', 0, 64)
+	}
+	return strconv.FormatFloat(q, 'f', 2, 64)
 }
 
 func invoiceParseNumber(value string) (float64, error) {
@@ -262,7 +292,16 @@ func invoiceParseNumber(value string) (float64, error) {
 }
 
 func invoiceMoneyText(value float64) string {
-	return fmt.Sprintf("$%.2f", value)
+	cents := int64(math.Round(math.Abs(value) * 100))
+	whole := strconv.FormatInt(cents/100, 10)
+	for i := len(whole) - 3; i > 0; i -= 3 {
+		whole = whole[:i] + "," + whole[i:]
+	}
+	sign := ""
+	if value < 0 {
+		sign = "-"
+	}
+	return fmt.Sprintf("%s$%s.%02d", sign, whole, cents%100)
 }
 
 func writeInvoicePDF(path string, data invoiceData) error {
@@ -272,6 +311,7 @@ func writeInvoicePDF(path string, data invoiceData) error {
 	const right = 54.0
 	usable := pageWidth - left - right
 	var stream strings.Builder
+	var pages []string
 	y := pageHeight - 54.0
 	if data.LogoPath != "" && data.LogoWidth > 0 && data.LogoHeight > 0 {
 		logoW := 112.0
@@ -337,24 +377,34 @@ func writeInvoicePDF(path string, data invoiceData) error {
 	y -= 14
 	stream.WriteString(fmt.Sprintf("%.2f %.2f m %.2f %.2f l S\n", left, y, pageWidth-right, y))
 	y -= 19
-	descLines := engagementWrapText(data.Description, 290, 9.5)
-	lineY := y
-	for _, line := range descLines {
-		write(line, false, 9.5, left)
-		y -= 13
+	for _, line := range data.Lines {
+		descLines := engagementWrapText(line.Description, 290, 9.5)
+		if len(descLines) == 0 {
+			descLines = []string{""}
+		}
+		if y-float64(len(descLines))*13 < 120 {
+			pages = append(pages, stream.String())
+			stream.Reset()
+			y = pageHeight - 54.0
+			write("Invoice "+data.InvoiceNumber+" (continued)", true, 10, left)
+			y -= 24
+		}
+		lineY := y
+		for _, text := range descLines {
+			write(text, false, 9.5, left)
+			y -= 13
+		}
+		top := y
+		y = lineY
+		write(invoiceQuantityText(line.Quantity), false, 9.5, left+310)
+		write(invoiceMoneyText(line.Rate), false, 9.5, left+365)
+		write(invoiceMoneyText(line.Amount), true, 9.5, left+435)
+		y = top - 5
 	}
-	y = lineY
-	qty := "1"
-	if data.FeeType == "Hourly Rate" {
-		qty = strconv.FormatFloat(data.Hours, 'f', 2, 64)
-	}
-	write(qty, false, 9.5, left+310)
-	write(invoiceMoneyText(data.Rate), false, 9.5, left+365)
-	write(invoiceMoneyText(data.Total), true, 9.5, left+435)
-	if len(descLines) == 0 {
-		y -= 13
-	} else {
-		y = lineY - float64(len(descLines))*13
+	if y < 150 {
+		pages = append(pages, stream.String())
+		stream.Reset()
+		y = pageHeight - 54.0
 	}
 	y -= 8
 	stream.WriteString(fmt.Sprintf("%.2f %.2f m %.2f %.2f l S\n", left, y, pageWidth-right, y))
@@ -372,8 +422,11 @@ func writeInvoicePDF(path string, data invoiceData) error {
 			y -= 13
 		}
 	}
-	stream.WriteString(fmt.Sprintf("BT /F1 7.5 Tf 1 0 0 1 %.2f 28 Tm (Invoice %s) Tj ET\n", left, engagementPDFEscape(data.InvoiceNumber)))
-	return writeSimplePDF(path, []string{stream.String()}, data.CompanyName, "Invoice "+data.InvoiceNumber+" - "+data.ClientName, data.LogoPath, data.LogoWidth, data.LogoHeight)
+	pages = append(pages, stream.String())
+	for i := range pages {
+		pages[i] += fmt.Sprintf("BT /F1 7.5 Tf 1 0 0 1 %.2f 28 Tm (Invoice %s  -  page %d of %d) Tj ET\n", left, engagementPDFEscape(data.InvoiceNumber), i+1, len(pages))
+	}
+	return writeSimplePDF(path, pages, data.CompanyName, "Invoice "+data.InvoiceNumber+" - "+data.ClientName, data.LogoPath, data.LogoWidth, data.LogoHeight)
 }
 
 func writeInvoiceDOCX(path string, data invoiceData) error {
@@ -468,15 +521,8 @@ func invoiceDOCXDocument(data invoiceData, hasLogo bool) string {
 			body.WriteString(docxParagraph(line, false, "left", 18, 0))
 		}
 	}
-	body.WriteString(docxParagraph("Service", true, "left", 20, 30))
-	body.WriteString(docxParagraph(data.Description, false, "left", 20, 0))
-	body.WriteString(docxParagraph("Tax Year: "+data.TaxYear, false, "left", 19, 0))
-	if data.FeeType == "Hourly Rate" {
-		body.WriteString(docxParagraph(fmt.Sprintf("Hours: %.2f", data.Hours), false, "left", 19, 0))
-		body.WriteString(docxParagraph("Hourly Rate: "+invoiceMoneyText(data.Rate), false, "left", 19, 80))
-	} else {
-		body.WriteString(docxParagraph("Flat Fee: "+invoiceMoneyText(data.Rate), false, "left", 19, 80))
-	}
+	body.WriteString(docxParagraph("Tax Year: "+data.TaxYear, false, "left", 19, 120))
+	body.WriteString(invoiceDOCXTable(data.Lines))
 	body.WriteString(docxParagraph("TOTAL DUE: "+invoiceMoneyText(data.Total), true, "right", 28, 180))
 	if data.Notes != "" {
 		body.WriteString(docxParagraph("Note", true, "left", 19, 30))
@@ -484,4 +530,26 @@ func invoiceDOCXDocument(data invoiceData, hasLogo bool) string {
 	}
 	body.WriteString(`<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="936" w:right="1123" w:bottom="936" w:left="1123" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr>`)
 	return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><w:body>` + body.String() + `</w:body></w:document>`
+}
+
+func invoiceDOCXTable(lines []invoiceLine) string {
+	cell := func(text string, width int, bold bool, align string) string {
+		run := `<w:r>`
+		if bold {
+			run += `<w:rPr><w:b/></w:rPr>`
+		}
+		run += `<w:t xml:space="preserve">` + xmlText(text) + `</w:t></w:r>`
+		return fmt.Sprintf(`<w:tc><w:tcPr><w:tcW w:w="%d" w:type="dxa"/></w:tcPr><w:p><w:pPr><w:jc w:val="%s"/></w:pPr>%s</w:p></w:tc>`, width, align, run)
+	}
+	row := func(cells ...string) string { return `<w:tr>` + strings.Join(cells, "") + `</w:tr>` }
+	var b strings.Builder
+	b.WriteString(`<w:tbl><w:tblPr><w:tblW w:w="9990" w:type="dxa"/><w:tblBorders><w:top w:val="single" w:sz="4" w:color="999999"/><w:bottom w:val="single" w:sz="4" w:color="999999"/><w:insideH w:val="single" w:sz="2" w:color="DDDDDD"/></w:tblBorders><w:tblCellMar><w:top w:w="60" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/></w:tblCellMar></w:tblPr>`)
+	b.WriteString(`<w:tblGrid><w:gridCol w:w="5790"/><w:gridCol w:w="1200"/><w:gridCol w:w="1500"/><w:gridCol w:w="1500"/></w:tblGrid>`)
+	b.WriteString(row(cell("Description", 5790, true, "left"), cell("Qty", 1200, true, "right"), cell("Rate", 1500, true, "right"), cell("Amount", 1500, true, "right")))
+	for _, l := range lines {
+		b.WriteString(row(cell(l.Description, 5790, false, "left"), cell(invoiceQuantityText(l.Quantity), 1200, false, "right"), cell(invoiceMoneyText(l.Rate), 1500, false, "right"), cell(invoiceMoneyText(l.Amount), 1500, true, "right")))
+	}
+	b.WriteString(`</w:tbl>`)
+	b.WriteString(docxParagraph("", false, "left", 19, 80))
+	return b.String()
 }

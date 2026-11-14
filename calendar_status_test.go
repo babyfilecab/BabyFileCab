@@ -8,7 +8,7 @@ import (
 
 func TestCalendarStatusUpdatesOnlySelectedAssignment(t *testing.T) {
 	items := []storedFirmCalendarAssignment{{Date: "2026-01-01", ClientID: "1"}, {Date: "2026-02-01", ClientID: "1"}, {Date: "2026-01-01", ClientID: "2"}}
-	for _, status := range []string{"drafting", "waiting-on-reports", "8879-sent", "waiting-for-signature", "signed", "ready-to-e-file", "completed"} {
+	for _, status := range calendarStatuses {
 		if err := updateCalendarAssignmentStatus(items, "2026-01-01", "1", status); err != nil {
 			t.Fatal(err)
 		}

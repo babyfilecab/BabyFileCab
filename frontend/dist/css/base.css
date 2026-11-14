@@ -1974,6 +1974,12 @@ select.modal-input.compact { background: white; }
 :root[data-theme="dark"] .calendar-status-8879-sent { color: #93c5fd; }
 :root[data-theme="dark"] .calendar-status-waiting-for-signature { color: #fcd34d; }
 :root[data-theme="dark"] .calendar-status-signed, :root[data-theme="dark"] .calendar-status-ready-to-e-file { color: #6ee7a0; }
+.calendar-status-e-filed, .calendar-status-accepted { color: #16813c; font-weight: 600; }
+.calendar-status-rejected { color: #c0262d; font-weight: 600; }
+.calendar-status-extension-filed { color: #6d4bb8; }
+:root[data-theme="dark"] .calendar-status-e-filed, :root[data-theme="dark"] .calendar-status-accepted { color: #6ee7a0; }
+:root[data-theme="dark"] .calendar-status-rejected { color: #fca5a5; }
+:root[data-theme="dark"] .calendar-status-extension-filed { color: #c4b5fd; }
 
 .calendar-icon-button { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; padding:6px; border:1px solid transparent; background:transparent; border-radius:10px; cursor:pointer; }
 .calendar-icon-button img { display:block; width:32px; height:32px; }
@@ -2047,7 +2053,7 @@ select.modal-input.compact { background: white; }
 .time-sheet-table { width:100%; border-collapse:collapse; }
 .time-sheet-table th, .time-sheet-table td { padding:11px 12px; border-bottom:1px solid var(--line); text-align:left; }
 .time-sheet-table th { position:sticky; top:0; background:var(--panel-2); z-index:1; }
-.time-sheet-table td:nth-child(4), .time-sheet-table th:nth-child(4) { text-align:right; }
+.time-sheet-table td:nth-child(5), .time-sheet-table th:nth-child(5) { text-align:right; }
 .time-sheet-table td:last-child, .time-sheet-table th:last-child { width:150px; text-align:right; }
 .time-sheet-delete { padding:6px 10px; min-height:0; }
 .time-sheet-empty { padding:34px; text-align:center; color:var(--muted); }
@@ -2089,3 +2095,19 @@ select.modal-input.compact { background: white; }
 .time-sheet-calendar-day.selected { background:#0878f9 !important; color:#fff !important; border-color:#005fca !important; font-weight:900 !important; box-shadow:0 0 0 3px rgba(8,120,249,.28) !important; }
 :root[data-theme="dark"] .time-sheet-calendar-selected { background:#102b53; color:#eef6ff; }
 
+
+/* Federal filing deadlines on the Firm Calendar */
+.firm-calendar-deadline { margin: 0 8px 6px; padding: 3px 7px; border-radius: 5px; font-size: 11px; line-height: 1.35; font-weight: 600; color: #8a3b00; background: #fff1e0; border-left: 3px solid #e07b00; }
+:root[data-theme="dark"] .firm-calendar-deadline { color: #fdba74; background: rgba(224,123,0,.14); }
+
+/* Tax calculator additions */
+.tax-checkbox-row { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--muted); font-weight: 400; }
+.tax-checkbox-row input { width: auto; margin-top: 2px; }
+.tax-result-notes { margin: 12px 0; padding: 10px 12px; border-radius: 8px; background: #fff7e6; border: 1px solid #f3d19c; font-size: 12.5px; color: #6b4a00; }
+.tax-result-notes p { margin: 0 0 4px; }
+.tax-result-notes p:last-child { margin: 0; }
+:root[data-theme="dark"] .tax-result-notes { background: rgba(245,158,11,.1); border-color: rgba(245,158,11,.35); color: #fcd34d; }
+.tax-safe-harbor { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 12px 0; padding: 10px 12px; border: 1px solid var(--line, #e2e8f0); border-radius: 8px; }
+.tax-safe-harbor div { display: flex; flex-direction: column; gap: 2px; }
+.tax-safe-harbor span { font-size: 12px; color: var(--muted); }
+.tax-safe-harbor > strong { font-size: 18px; }

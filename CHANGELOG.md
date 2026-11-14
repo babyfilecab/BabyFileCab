@@ -1,5 +1,39 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- **Staff can't delete for good.** Deleting a client, emptying the Recycle
+  Bin and removing items from it permanently now need an administrator.
+  Staff can still delete files and tax years to the Recycle Bin and restore
+  them.
+- **Letters and invoices are saved with the client.** They go into the
+  client's folder for that tax year (or the Permanent Folder), encrypted, and
+  show up in the client list. Before, they went to a separate "Generated
+  Forms" folder that didn't appear in the app, and the engagement letter save
+  window could default to a folder outside BabyFileCab.
+
+### New
+- **Federal Tax Calculator:** 2024 added. Itemized deductions, the extra
+  standard deduction for age 65+ and blindness, the 2025–2028 senior, tips
+  and overtime deductions, the QBI deduction for self-employment income,
+  qualified dividends, the Net Investment Income Tax, the $500 credit for
+  other dependents, and the prior-year safe harbor for quarterly payments.
+- **Firm Calendar:** new statuses Extension Filed, E-filed, Accepted and
+  Rejected. Rejected returns and e-files with no acceptance after three days
+  show in Needs Attention, and extended returns from September 15. Federal
+  filing deadlines appear on the calendar.
+- **Invoices:** several lines per invoice, numbers in order, hours from the
+  Time Sheet, and an Invoices list (Tools › Invoices) for unpaid, overdue and
+  paid invoices.
+- **Time Sheet:** week, month and year views with totals per client, a client
+  filter, everyone's time for administrators, export to a spreadsheet, and a
+  Billed column. Billed hours can't be changed or deleted.
+- **Engagement Letter:** more services (1040-X, 990, 709, 706, state
+  returns), wording administrators can edit for the whole firm, and a
+  preview that matches the finished letter word for word.
+- **Currency Converter:** Treasury December 31 rates for FBAR and Form 8938.
+
 ## v2.1.2 (November 2026)
 
 - New app icon on Windows, Mac and Linux: the BabyFileCab file cabinet
