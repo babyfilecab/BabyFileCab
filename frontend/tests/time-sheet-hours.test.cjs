@@ -1,0 +1,10 @@
+const assert = require('node:assert/strict');
+const vm = require('node:vm');
+const source = require('./source.cjs');
+const i = source.indexOf('function parseTimeSheetHours('), j = source.indexOf('\nfunction ', i + 1);
+const box = {}; vm.createContext(box);
+vm.runInContext(source.slice(i, j) + ';this.parse=parseTimeSheetHours;', box);
+const cases = { '1.5': 1.5, '2': 2, '.25': 0.25, '1:30': 1.5, '0:45': 0.75, '10:05': 10 + 5 / 60, '90m': 1.5, '45 min': 0.75, '2h': 2, '3 hours': 3, ' 1.75 ': 1.75 };
+for (const [text, hours] of Object.entries(cases)) assert.ok(Math.abs(box.parse(text) - hours) < 1e-9, text);
+for (const bad of ['', 'abc', '1:75', '1,5', '-1', '1:3']) assert.ok(Number.isNaN(box.parse(bad)), bad);
+console.log('time sheet hours tests passed');

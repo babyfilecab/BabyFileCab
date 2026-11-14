@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v2.2.0 (November 2026)
 
 ### Changed
 - **Staff can't delete for good.** Deleting a client, emptying the Recycle
@@ -22,13 +22,17 @@
 - **Firm Calendar:** new statuses Extension Filed, E-filed, Accepted and
   Rejected. Rejected returns and e-files with no acceptance after three days
   show in Needs Attention, and extended returns from September 15. Federal
-  filing deadlines appear on the calendar.
+  filing deadlines appear on the calendar. The week arrows now carry on from
+  December 2026 into 2027 instead of stopping at the end of the year, and
+  clients can be moved to any year the calendar shows.
 - **Invoices:** several lines per invoice, numbers in order, hours from the
   Time Sheet, and an Invoices list (Tools › Invoices) for unpaid, overdue and
   paid invoices.
 - **Time Sheet:** week, month and year views with totals per client, a client
   filter, everyone's time for administrators, export to a spreadsheet, and a
-  Billed column. Billed hours can't be changed or deleted.
+  Billed column. Billed hours can't be changed or deleted. Time can be typed
+  as 1.5, 1:30 or 90m. Staff enter and edit their own time the same way
+  administrators do.
 - **Engagement Letter:** more services (1040-X, 990, 709, 706, state
   returns), wording administrators can edit for the whole firm, and a
   preview that matches the finished letter word for word.

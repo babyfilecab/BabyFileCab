@@ -1692,7 +1692,7 @@
         </div>
         <label class="form-field"><span>Client</span><select id="timeSheetClient" class="modal-input compact"></select></label>
         <label class="form-field"><span>Work performed</span><input id="timeSheetWork" class="modal-input compact" type="text" list="timeSheetWorkOptions" maxlength="160" placeholder="Choose or type what you worked on" autocomplete="off" /><datalist id="timeSheetWorkOptions"><option value="Tax Return Preparation"></option><option value="Tax Return Review"></option><option value="Document Review"></option><option value="Bookkeeping"></option><option value="Client Communication"></option><option value="Tax Research"></option><option value="Tax Planning"></option><option value="E-file / Submission"></option><option value="Amended Return"></option><option value="Notice / Resolution"></option><option value="Administrative"></option></datalist></label>
-        <label class="form-field"><span>Hours worked</span><input id="timeSheetHours" class="modal-input compact" type="number" min="0.01" max="24" step="0.25" placeholder="e.g. 1.50" /></label>
+        <label class="form-field"><span>Time worked</span><input id="timeSheetHours" class="modal-input compact" type="text" inputmode="decimal" maxlength="8" placeholder="1.5 or 1:30" title="Hours (1.5), hours and minutes (1:30), or minutes (90m)" autocomplete="off" /></label>
         <div class="time-sheet-entry-actions"><button id="timeSheetAdd" class="primary time-sheet-add" type="button">Add Time</button><button id="timeSheetCancelEdit" class="secondary hidden" type="button">Cancel Edit</button></div>
       </div>
       <div id="timeSheetDateStatus" class="time-sheet-date-status"></div>

@@ -101,7 +101,7 @@ func (a *App) RemoveClientFromFirmCalendar2026(date, clientID string) ([]FirmCal
 	return a.resolveFirmCalendarAssignmentsUnlocked(filtered)
 }
 
-// ReassignClientInFirmCalendar2026 moves one scheduled client between supported 2025/2026/2027 dates.
+// ReassignClientInFirmCalendar2026 moves one scheduled client between two dates in the supported calendar years.
 // The legacy method name is retained for frontend compatibility. If the client is already assigned to the destination date, the
 // original assignment is simply removed so the schedule never contains duplicates.
 func (a *App) ReassignClientInFirmCalendar2026(oldDate, newDate, clientID string) ([]FirmCalendarAssignment, error) {

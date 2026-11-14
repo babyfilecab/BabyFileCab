@@ -314,8 +314,8 @@ function wireEvents() {
   $('firmCalendarCloseTop').addEventListener('click', hideFirmCalendar);
   $('firmCalendarBackdrop').addEventListener('click', e => { if (e.target === $('firmCalendarBackdrop')) hideFirmCalendar(); });
   $('firmCalendarYearSelect').addEventListener('change', () => { setFirmCalendarYear(Number($('firmCalendarYearSelect').value), { preferAssignments: true }); clearFirmCalendarClientDetail(); renderFirmCalendarWeek(); });
-  $('firmCalendarPrevWeek').addEventListener('click', () => { if (firmCalendarWeekIndex > 0) { firmCalendarWeekIndex--; renderFirmCalendarWeek(); } });
-  $('firmCalendarNextWeek').addEventListener('click', () => { if (firmCalendarWeekIndex < firmCalendarWeekStarts.length - 1) { firmCalendarWeekIndex++; renderFirmCalendarWeek(); } });
+  $('firmCalendarPrevWeek').addEventListener('click', () => { if (stepFirmCalendarWeek(-1)) renderFirmCalendarWeek(); });
+  $('firmCalendarNextWeek').addEventListener('click', () => { if (stepFirmCalendarWeek(1)) renderFirmCalendarWeek(); });
   $('firmCalendarCurrentWeek').addEventListener('click', () => {
     const nowYear = new Date().getFullYear();
     if (FIRM_CALENDAR_YEARS.includes(nowYear) && nowYear !== firmCalendarYear) setFirmCalendarYear(nowYear);

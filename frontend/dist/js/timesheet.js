@@ -114,6 +114,18 @@ function populateTimeSheetClients() {
   if (previous && clients.some(client => client.path === previous)) select.value=previous;
   else if (selectedClient && clients.some(client => client.path === selectedClient.path)) select.value=selectedClient.path;
 }
+// Time worked as hours: "1.5", "1:30" (hours:minutes) or "90m" (minutes).
+// Returns NaN when the text can't be read.
+function parseTimeSheetHours(text) {
+  const value = String(text ?? '').trim().toLowerCase();
+  let m = value.match(/^(\d{1,2}):([0-5]\d)$/);
+  if (m) return Number(m[1]) + Number(m[2]) / 60;
+  m = value.match(/^(\d{1,4})\s*(m|min|mins|minutes)$/);
+  if (m) return Number(m[1]) / 60;
+  m = value.match(/^(\d*\.?\d+)\s*(h|hr|hrs|hours)?$/);
+  if (m) return Number(m[1]);
+  return NaN;
+}
 function timeSheetDateLabel(date) {
   if (!date) return '';
   const parts=String(date).split('-').map(Number);
@@ -285,13 +297,13 @@ async function showTimeSheet() {
 }
 function hideTimeSheet() { closeTimeSheetCalendar(); $('timeSheetBackdrop').classList.add('hidden'); cancelTimeSheetEdit(); }
 async function addTimeSheetEntry() {
-  const date=$('timeSheetDate').value, clientPath=$('timeSheetClient').value, work=String($('timeSheetWork').value || '').trim(), hours=Number($('timeSheetHours').value);
+  const date=$('timeSheetDate').value, clientPath=$('timeSheetClient').value, work=String($('timeSheetWork').value || '').trim(), hours=Math.round(parseTimeSheetHours($('timeSheetHours').value)*100)/100;
   if (!date) { toast('Choose the date worked.',true); return; }
   if (date !== timeSheetSelectedDate) { toast('Click OK next to the date to set the selected date first.',true); return; }
   if (!clientPath) { toast('Choose a client.',true); return; }
   if (!work) { toast('Choose or type what you worked on.',true); return; }
   if (work.length > 160) { toast('Work performed must be 160 characters or less.',true); return; }
-  if (!Number.isFinite(hours) || hours <= 0 || hours > 24) { toast('Enter hours greater than 0 and no more than 24.',true); return; }
+  if (!Number.isFinite(hours) || hours <= 0 || hours > 24) { toast('Enter the time worked, for example 1.5 or 1:30 (no more than 24 hours).',true); return; }
   const button=$('timeSheetAdd'); button.disabled=true;
   try {
     if (timeSheetEditingId) {

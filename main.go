@@ -21,7 +21,7 @@ import (
 )
 
 // appVersion must match "productVersion" in wails.json.
-const appVersion = "2.1.2"
+const appVersion = "2.2.0"
 
 const (
 	appTitle             = "BabyFileCab — Local Document Management"

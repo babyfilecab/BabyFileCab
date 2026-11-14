@@ -65,7 +65,9 @@ known limits.
   return through Drafting, Waiting on Reports, Extension Filed, 8879 Sent,
   Waiting for Signature, Signed, Ready to E-file, E-filed, Accepted or
   Rejected, and Completed. Federal filing deadlines show on the days they
-  fall, moved for weekends and holidays the way the IRS moves them.
+  fall, moved for weekends and holidays the way the IRS moves them. The
+  calendar runs from 2025 to two years ahead, and the arrows go straight from
+  December into the next January.
 - **Needs Attention:** when you sign in, BabyFileCab lists returns that have
   been stuck waiting for a while or are past their scheduled date, so nothing
   slips through the cracks in the middle of tax season.
@@ -77,8 +79,10 @@ known limits.
 - **Invoices:** as many lines as you need, numbers that run in order
   (INV-2026-0001, 0002…), and hours pulled straight from the Time Sheet. The
   Invoices list shows what's unpaid or overdue and lets you mark payments.
-- **Time Sheet:** log hours per client and per day, then look at a week, month
-  or year with totals per client. Administrators can see everyone's time.
+- **Time Sheet:** everyone, staff included, logs their own time per client
+  and per day (type 1.5, 1:30 or 90m) and can fix their own entries until
+  they're billed. Look at a week, month or year with totals per client.
+  Administrators can see everyone's time.
   Export to a spreadsheet; billed hours are marked with the invoice number.
 - **Federal Tax Calculator:** quick 2024, 2025 and 2026 estimates covering
   itemized or standard deductions, the extra amount for 65+ and blind, the

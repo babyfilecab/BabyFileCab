@@ -54,6 +54,23 @@ function buildFirmCalendarWeekStarts(year = firmCalendarYear) {
   return starts;
 }
 
+// Moves one week forward or back. At the end of December it carries on into
+// the next calendar year (and back into the previous one at the start of
+// January), skipping the week the two years share.
+function stepFirmCalendarWeek(delta) {
+  const current = firmCalendarWeekStarts[firmCalendarWeekIndex];
+  const next = firmCalendarWeekIndex + delta;
+  if (next >= 0 && next < firmCalendarWeekStarts.length) { firmCalendarWeekIndex = next; return true; }
+  const year = firmCalendarYear + delta;
+  if (!current || !FIRM_CALENDAR_YEARS.includes(year)) return false;
+  const starts = buildFirmCalendarWeekStarts(year);
+  const index = delta > 0 ? starts.findIndex(start => start > current) : starts.map(start => start < current).lastIndexOf(true);
+  if (index < 0) return false;
+  setFirmCalendarYear(year);
+  firmCalendarWeekIndex = index;
+  return true;
+}
+
 function firmCalendarWeekEnd(start) {
   const end = new Date(start);
   end.setUTCDate(end.getUTCDate() + 6);
@@ -643,8 +660,8 @@ function renderFirmCalendarWeek() {
   const end = firmCalendarWeekEnd(start);
   $('firmCalendarWeekSelect').value = String(firmCalendarWeekIndex);
   $('firmCalendarWeekLabel').textContent = `${firmCalendarFormatDate(start, { month: 'long', day: 'numeric' })} – ${firmCalendarFormatDate(end, { month: 'long', day: 'numeric', year: 'numeric' })}`;
-  $('firmCalendarPrevWeek').disabled = firmCalendarWeekIndex === 0;
-  $('firmCalendarNextWeek').disabled = firmCalendarWeekIndex === firmCalendarWeekStarts.length - 1;
+  $('firmCalendarPrevWeek').disabled = firmCalendarWeekIndex === 0 && firmCalendarYear === FIRM_CALENDAR_YEARS[0];
+  $('firmCalendarNextWeek').disabled = firmCalendarWeekIndex === firmCalendarWeekStarts.length - 1 && firmCalendarYear === FIRM_CALENDAR_YEARS[FIRM_CALENDAR_YEARS.length - 1];
 
   const now = new Date();
   const todayISO = firmCalendarISO(firmCalendarUTCDate(now.getFullYear(), now.getMonth(), now.getDate()));
@@ -770,7 +787,7 @@ async function saveFirmCalendarReassign() {
   if (!item) return;
   const newDate = $('firmCalendarReassignDate').value;
   if (!newDate) { toast('Choose a new date.', true); return; }
-  if (!/^202[5-7]-\d{2}-\d{2}$/.test(newDate)) { toast('Firm Calendar dates must be in 2025, 2026, or 2027.', true); return; }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate) || !FIRM_CALENDAR_YEARS.includes(Number(newDate.slice(0, 4)))) { toast(`Firm Calendar dates must be between ${FIRM_CALENDAR_YEARS[0]} and ${FIRM_CALENDAR_YEARS[FIRM_CALENDAR_YEARS.length - 1]}.`, true); return; }
   try {
     firmCalendarAssignments = await backend().ReassignClientInFirmCalendar2026(item.date, newDate, item.clientId);
     firmCalendarContextAssignment = firmCalendarAssignments.find(a => a.date === newDate && a.clientId === item.clientId) || null;
