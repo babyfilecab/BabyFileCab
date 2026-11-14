@@ -226,7 +226,9 @@ func (a *App) DeleteTimeSheetEntry(id string) ([]TimeSheetEntry, error) {
 	return a.GetTimeSheetEntries()
 }
 
-// GetFirmCalendar2026 returns the company-shared client schedule for supported calendar years 2025, 2026, and 2027. The legacy method name is retained for frontend compatibility.
+// GetFirmCalendar2026 returns the company-shared client schedule for every
+// supported calendar year (2025 through two years past the current year).
+// The "2026" in the name is historical and kept for frontend compatibility.
 // The calendar file lives inside the signed-in company's local data directory, so every
 // local BabyFileCab user in the same company sees the same assignments.
 func (a *App) GetFirmCalendar2026() ([]FirmCalendarAssignment, error) {

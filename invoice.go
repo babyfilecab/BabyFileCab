@@ -142,8 +142,8 @@ func (a *App) buildInvoiceData(req InvoiceRequest) (invoiceData, error) {
 	}
 	taxYear := strings.TrimSpace(req.TaxYear)
 	yearNumber, yearErr := strconv.Atoi(taxYear)
-	if yearErr != nil || yearNumber < 2018 || yearNumber > 2026 {
-		return invoiceData{}, errors.New("select a tax year from 2018 through 2026")
+	if latest := latestTaxYear(time.Now()); yearErr != nil || yearNumber < 2018 || yearNumber > latest {
+		return invoiceData{}, fmt.Errorf("select a tax year from 2018 through %d", latest)
 	}
 	invoiceNumber := strings.TrimSpace(req.InvoiceNumber)
 	if invoiceNumber == "" {

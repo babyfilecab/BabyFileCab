@@ -161,14 +161,24 @@ func (a *App) ReassignClientInFirmCalendar2026(oldDate, newDate, clientID string
 	return a.resolveFirmCalendarAssignmentsUnlocked(filtered)
 }
 
+// The Firm Calendar starts in 2025 (the first year BabyFileCab scheduled
+// clients) and always reaches two years past the current year, so it never
+// runs out when a new year begins.
+const firmCalendarFirstYear = 2025
+
+func firmCalendarLastYear(now time.Time) int { return now.Year() + 2 }
+
+// latestTaxYear is the newest tax year offered for invoices and engagement letters.
+func latestTaxYear(now time.Time) int { return now.Year() }
+
 func validateFirmCalendarDate(value string) error {
 	value = strings.TrimSpace(value)
 	d, err := time.Parse("2006-01-02", value)
 	if err != nil {
 		return errors.New("calendar date must be in YYYY-MM-DD format")
 	}
-	if d.Year() != 2025 && d.Year() != 2026 && d.Year() != 2027 {
-		return errors.New("Firm Calendar assignments are limited to calendar years 2025, 2026, and 2027")
+	if last := firmCalendarLastYear(time.Now()); d.Year() < firmCalendarFirstYear || d.Year() > last {
+		return fmt.Errorf("Firm Calendar assignments are limited to calendar years %d through %d", firmCalendarFirstYear, last)
 	}
 	return nil
 }

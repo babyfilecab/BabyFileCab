@@ -281,8 +281,8 @@ func (a *App) buildEngagementLetterData(req EngagementLetterRequest) (engagement
 	}
 	taxYear := strings.TrimSpace(req.TaxYear)
 	yearNumber, yearErr := strconv.Atoi(taxYear)
-	if yearErr != nil || yearNumber < 2018 || yearNumber > 2026 {
-		return engagementLetterData{}, errors.New("select a tax year from 2018 through 2026")
+	if latest := latestTaxYear(time.Now()); yearErr != nil || yearNumber < 2018 || yearNumber > latest {
+		return engagementLetterData{}, fmt.Errorf("select a tax year from 2018 through %d", latest)
 	}
 	feeType := strings.TrimSpace(req.FeeType)
 	if feeType != "Flat Fee" && feeType != "Hourly Rate" {

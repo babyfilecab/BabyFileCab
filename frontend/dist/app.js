@@ -866,7 +866,7 @@ async function showEngagementLetter() {
   preparerSelect.value = '';
 
   $('engagementService').value = '';
-  $('engagementTaxYear').value = '2026';
+  fillTaxYearSelect($('engagementTaxYear'));
   $('engagementFeeType').value = 'Flat Fee';
   $('engagementFeeValue').value = '';
   $('engagementDate').value = new Date().toISOString().slice(0, 10);
@@ -1048,7 +1048,7 @@ function buildEngagementRequest() {
   if (!clientPath) throw new Error('Choose a client from the Client dropdown.');
   if (!preparerUsername) throw new Error('Choose a preparer from the Preparer dropdown.');
   if (!ENGAGEMENT_SERVICES.includes(service)) throw new Error('Choose a service from the Service dropdown.');
-  if (!taxYear) throw new Error('Choose a tax year from 2018 through 2026.');
+  if (!taxYear) throw new Error(`Choose a tax year from 2018 through ${new Date().getFullYear()}.`);
   if (!feeValue) throw new Error(`Enter the ${feeType === 'Hourly Rate' ? 'hourly rate' : 'flat fee'} in U.S. dollars.`);
   return {
     clientPath,
@@ -1163,7 +1163,7 @@ async function showInvoiceGenerator() {
 
   const today = new Date().toISOString().slice(0, 10);
   $('invoiceService').value = '';
-  $('invoiceTaxYear').value = '2026';
+  fillTaxYearSelect($('invoiceTaxYear'));
   $('invoiceNumber').value = invoiceDefaultNumber();
   $('invoiceDate').value = today;
   $('invoiceDueDate').value = invoiceAddDaysISO(today, 30);
@@ -1417,8 +1417,25 @@ function hideTaxCalculator() {
 }
 
 
-const FIRM_CALENDAR_YEARS = [2025, 2026, 2027];
-let firmCalendarYear = 2026;
+// 2025 through two years past today, so the calendar never runs out.
+const FIRM_CALENDAR_YEARS = firmCalendarYearRange(new Date());
+let firmCalendarYear = new Date().getFullYear();
+
+function firmCalendarYearRange(now) {
+  const years = [];
+  for (let y = 2025; y <= now.getFullYear() + 2; y++) years.push(y);
+  return years;
+}
+
+// Tax years 2018 through the current year, newest selected by default.
+function fillTaxYearSelect(select) {
+  if (!select) return;
+  const latest = new Date().getFullYear();
+  const years = [];
+  for (let y = 2018; y <= latest; y++) years.push(y);
+  select.replaceChildren(...years.map(y => new Option(String(y), String(y))));
+  select.value = String(latest);
+}
 
 function firmCalendarUTCDate(year, monthIndex, day) {
   return new Date(Date.UTC(year, monthIndex, day));
@@ -1503,7 +1520,15 @@ function firmCalendarAssignmentWeekIndex(items = firmCalendarAssignments) {
 
 function updateFirmCalendarYearUI() {
   const yearSelect = $('firmCalendarYearSelect');
+  if (yearSelect && yearSelect.options.length !== FIRM_CALENDAR_YEARS.length) {
+    yearSelect.replaceChildren(...FIRM_CALENDAR_YEARS.map(y => new Option(String(y), String(y))));
+  }
   if (yearSelect) yearSelect.value = String(firmCalendarYear);
+  const reassignDate = $('firmCalendarReassignDate');
+  if (reassignDate) {
+    reassignDate.min = `${FIRM_CALENDAR_YEARS[0]}-01-01`;
+    reassignDate.max = `${FIRM_CALENDAR_YEARS[FIRM_CALENDAR_YEARS.length - 1]}-12-31`;
+  }
   $('firmCalendarTitle').textContent = `${firmCalendarYear} Firm Calendar`;
   const weekLabel = $('firmCalendarWeekYearLabel');
   if (weekLabel) weekLabel.textContent = `Week of ${firmCalendarYear}`;
@@ -1867,7 +1892,7 @@ async function showFirmCalendar() {
 
   const nowYear = new Date().getFullYear();
   if (FIRM_CALENDAR_YEARS.includes(nowYear)) firmCalendarYear = nowYear;
-  else if (!FIRM_CALENDAR_YEARS.includes(firmCalendarYear)) firmCalendarYear = 2026;
+  else if (!FIRM_CALENDAR_YEARS.includes(firmCalendarYear)) firmCalendarYear = FIRM_CALENDAR_YEARS[FIRM_CALENDAR_YEARS.length - 1];
 
   setFirmCalendarYear(firmCalendarYear);
   renderCalendarPreparerMenu();
@@ -1934,7 +1959,7 @@ function showCalendarScheduleClient(clientID) {
 async function saveCalendarScheduleClient() {
   if (!calendarScheduleClient || $('calendarScheduleClientSave').disabled) return;
   const client={...calendarScheduleClient}, date=$('calendarScheduleClientDate').value, username=$('calendarScheduleClientPreparer').value;
-  if (!/^202[5-7]-\d{2}-\d{2}$/.test(date) || !$('calendarScheduleClientDate').checkValidity()) { toast(`Choose a valid date in ${firmCalendarYear}.`,true); return; }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !FIRM_CALENDAR_YEARS.includes(Number(date.slice(0, 4))) || !$('calendarScheduleClientDate').checkValidity()) { toast(`Choose a valid date in ${firmCalendarYear}.`,true); return; }
   const existing=firmCalendarAssignments.find(item => item.date===date && item.clientId===client.clientId);
   if (existing && !confirm('This client is already scheduled on that date. Update its assigned preparer?')) return;
   const generation=sessionGeneration; $('calendarScheduleClientSave').disabled=true;
