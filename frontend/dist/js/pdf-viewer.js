@@ -43,7 +43,7 @@ function closePDFDocument() {
   pdfPageSizes = new Map();
   pdfTextCache = new Map();
   pdfRenderedKey = '';
-  if (doc) doc.destroy().catch(() => {});
+  if (doc) doc.loadingTask.destroy().catch(() => {});
 }
 
 async function openPDFDocument(preview) {
@@ -59,7 +59,7 @@ async function openPDFDocument(preview) {
     isEvalSupported: false,
   }).promise;
   if (currentPDF !== preview) {
-    doc.destroy().catch(() => {});
+    doc.loadingTask.destroy().catch(() => {});
     return null;
   }
   pdfDocument = doc;
