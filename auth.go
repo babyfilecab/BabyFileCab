@@ -785,8 +785,8 @@ func validateUserRegistration(req UserRegistration) error {
 	if req.Phone == "" {
 		return errors.New("phone number is required")
 	}
-	if len(req.Password) < 8 {
-		return errors.New("password must be at least 8 characters")
+	if err := validateNewPassword(req.Username, req.Password); err != nil {
+		return err
 	}
 	if req.Password != req.ConfirmPassword {
 		return errors.New("password and confirm password do not match")

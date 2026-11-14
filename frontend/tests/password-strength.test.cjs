@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');const path=require('node:path');const vm=require('node:vm');
+const source=fs.readFileSync(path.join(__dirname,'../dist/app.js'),'utf8');
+const chunk=source.slice(source.indexOf('const PASSWORD_MIN_LENGTH'),source.indexOf('function installPasswordStrengthMeters'));
+const box={};vm.createContext(box);vm.runInContext(chunk+';this.passwordProblem=passwordProblem;this.passwordStrength=passwordStrength;',box);
+assert.match(box.passwordProblem('short-pass','alice'),/at least 12/);
+assert.match(box.passwordProblem('my-alice-secret','alice'),/username/);
+assert.match(box.passwordProblem('zzzzzzzzzzzzzz',''),/repeated/);
+assert.equal(box.passwordProblem('correct horse battery',''),'');
+assert.equal(box.passwordStrength('','').score,0);
+assert.equal(box.passwordStrength('short','').score,1);
+assert.equal(box.passwordStrength('plainpassword','').score,2);
+assert.ok(box.passwordStrength('Tax-Records!2026','').score>=3);
+assert.equal(box.passwordStrength('correct horse battery staple','').score,4);
+console.log('password strength tests passed');

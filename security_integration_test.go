@@ -19,7 +19,7 @@ func TestEncryptedCompanyEnrollmentAndBackup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	admin := UserRegistration{CompanyName: "Example Tax", Username: "admin", FirstName: "Ada", LastName: "Accountant", Email: "ada@example.test", Phone: "5551234", Password: "long-admin-password", ConfirmPassword: "long-admin-password", Role: "administrator"}
+	admin := UserRegistration{CompanyName: "Example Tax", Username: "admin", FirstName: "Ada", LastName: "Accountant", Email: "ada@example.test", Phone: "5551234", Password: "long-boss-passphrase", ConfirmPassword: "long-boss-passphrase", Role: "administrator"}
 	profile, err := a.RegisterUser(admin)
 	if err != nil {
 		t.Fatal(err)
@@ -113,12 +113,12 @@ func TestEncryptedCompanyEnrollmentAndBackup(t *testing.T) {
 	if bytes.Contains(raw, []byte("restored legacy note")) {
 		t.Fatal("legacy restore left plaintext in vault")
 	}
-	staffReq := ExistingCompanyUserRegistration{CompanyID: profile.CompanyID, AdminUsername: "admin", AdminPassword: "long-admin-password", Username: "staff", FirstName: "Sam", LastName: "Staff", Email: "sam@example.test", Phone: "5554321", Password: "long-staff-password", ConfirmPassword: "long-staff-password", Role: "staff"}
+	staffReq := ExistingCompanyUserRegistration{CompanyID: profile.CompanyID, AdminUsername: "admin", AdminPassword: "long-boss-passphrase", Username: "staff", FirstName: "Sam", LastName: "Staff", Email: "sam@example.test", Phone: "5554321", Password: "long-team-passphrase", ConfirmPassword: "long-team-passphrase", Role: "staff"}
 	if _, err := a.CreateUserUnderExistingCompany(staffReq); err != nil {
 		t.Fatal(err)
 	}
 	a.Logout()
-	if _, err := a.Login("staff", "long-staff-password"); err != nil {
+	if _, err := a.Login("staff", "long-team-passphrase"); err != nil {
 		t.Fatal("staff vault unlock", err)
 	}
 	if got, err := a.GetNotes(client); err != nil || got != "restored legacy note" {
@@ -141,7 +141,7 @@ func TestEncryptedCompanyEnrollmentAndBackup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := reopened.Login("staff", "long-staff-password"); err != nil {
+	if _, err := reopened.Login("staff", "long-team-passphrase"); err != nil {
 		t.Fatal("SQLite account reopen", err)
 	}
 	if got, err := reopened.GetNotes(client); err != nil || got != "restored legacy note" {

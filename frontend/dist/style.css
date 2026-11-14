@@ -2334,3 +2334,15 @@ tr:first-child { background: var(--panel-2); font-weight: 600; }
 :root[data-theme="dark"] .audit-trail { background: var(--bg); border-color: var(--line-strong); }
 :root[data-theme="dark"] .audit-entry { border-bottom-color: var(--line); }
 :root[data-theme="dark"] .audit-details { color: var(--text-2); }
+
+/* Password strength meter --------------------------------------------------- */
+.password-meter { margin: 6px 0 2px; }
+.password-meter-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.password-meter-bar span { height: 4px; border-radius: 2px; background: var(--line); transition: background-color .15s ease; }
+.password-meter-text { margin-top: 5px; font-size: 12px; color: var(--muted); line-height: 1.35; }
+.password-meter[data-score="1"] .password-meter-bar span:nth-child(-n+1) { background: #dc2626; }
+.password-meter[data-score="2"] .password-meter-bar span:nth-child(-n+2) { background: #d97706; }
+.password-meter[data-score="3"] .password-meter-bar span:nth-child(-n+3) { background: #65a30d; }
+.password-meter[data-score="4"] .password-meter-bar span { background: #16a34a; }
+.password-meter[data-score="1"] .password-meter-text { color: #b91c1c; }
+:root[data-theme="dark"] .password-meter[data-score="1"] .password-meter-text { color: #fca5a5; }

@@ -389,6 +389,7 @@ const IRS_YEARLY_EXCHANGE_RATES = [
 window.addEventListener('DOMContentLoaded', async () => {
   installAutomaticLock();
   installPasswordVisibilityToggles();
+  installPasswordStrengthMeters();
   wireEvents();
   applyTheme(localStorage.getItem('babyfilecab-theme') || 'light', false);
   await waitForBackend();
@@ -539,7 +540,7 @@ async function createAccount() {
   if (!req.lastName) { $('createLastName').focus(); toast('Last name is required.', true); return; }
   if (!req.email) { $('createEmail').focus(); toast('Email address is required.', true); return; }
   if (!req.phone) { $('createPhone').focus(); toast('Phone number is required.', true); return; }
-  if (req.password.length < 8) { $('createPassword').focus(); toast('Password must be at least 8 characters.', true); return; }
+  { const problem = passwordProblem(req.password, req.username); if (problem) { $('createPassword').focus(); toast(problem, true); return; } }
   if (req.password !== req.confirmPassword) { $('createConfirmPassword').focus(); toast('Passwords do not match.', true); return; }
   if (req.role !== 'administrator') { $('createRole').focus(); toast('The first user for a new company must be an Administrator.', true); return; }
 
@@ -635,7 +636,7 @@ async function createExistingCompanyUser() {
   if (!req.lastName) { $('existingLastName').focus(); toast('Last name is required.', true); return; }
   if (!req.email) { $('existingEmail').focus(); toast('Email address is required.', true); return; }
   if (!req.phone) { $('existingPhone').focus(); toast('Phone number is required.', true); return; }
-  if (req.password.length < 8) { $('existingPassword').focus(); toast('Password must be at least 8 characters.', true); return; }
+  { const problem = passwordProblem(req.password, req.username); if (problem) { $('existingPassword').focus(); toast(problem, true); return; } }
   if (req.password !== req.confirmPassword) { $('existingConfirmPassword').focus(); toast('Passwords do not match.', true); return; }
   if (!req.adminUsername) { $('existingAdminUsername').focus(); toast('Administrator username is required.', true); return; }
   if (!req.adminPassword) { $('existingAdminPassword').focus(); toast('Administrator password is required.', true); return; }
@@ -2692,6 +2693,56 @@ function updatePasswordToggle(button, input) {
   button.setAttribute('aria-pressed', visible ? 'true' : 'false');
   button.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
   button.title = visible ? 'Hide password' : 'Show password';
+}
+
+// Password strength ---------------------------------------------------------
+// Mirrors the backend rule in password_policy.go (12+ characters, not the
+// username, not one repeated character). The meter is guidance only.
+const PASSWORD_MIN_LENGTH = 12;
+function passwordProblem(password, username = '') {
+  const pw = String(password || '');
+  if ([...pw].length < PASSWORD_MIN_LENGTH) return `Password must be at least ${PASSWORD_MIN_LENGTH} characters.`;
+  const user = String(username || '').trim().toLowerCase();
+  if (user.length >= 3 && pw.toLowerCase().includes(user)) return 'Password must not contain your username.';
+  if (new Set(pw).size === 1) return 'Password must not be a single repeated character.';
+  return '';
+}
+function passwordStrength(password, username = '') {
+  const pw = String(password || '');
+  if (!pw) return { score: 0, label: '', hint: `Use at least ${PASSWORD_MIN_LENGTH} characters. A short phrase of unrelated words works well.` };
+  const problem = passwordProblem(pw, username);
+  if (problem) return { score: 1, label: 'Too weak', hint: problem };
+  const classes = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter(re => re.test(pw)).length;
+  const unique = new Set(pw.toLowerCase()).size;
+  let score = 2;
+  if ([...pw].length >= 16 || (classes >= 3 && unique >= 8)) score = 3;
+  if (([...pw].length >= 16 && classes >= 2 && unique >= 10) || ([...pw].length >= 20 && unique >= 8)) score = 4;
+  const labels = { 2: 'Fair', 3: 'Good', 4: 'Strong' };
+  const hints = { 2: 'Longer is stronger: try 16+ characters or mix in numbers and symbols.', 3: 'Good password.', 4: 'Strong password.' };
+  return { score, label: labels[score], hint: hints[score] };
+}
+function installPasswordStrengthMeters() {
+  [['createPassword', 'createUsername'], ['existingPassword', 'existingUsername'], ['changeNewPassword', null]].forEach(([inputId, userId]) => {
+    const input = $(inputId);
+    if (!input || input.dataset.strengthMeter) return;
+    input.dataset.strengthMeter = '1';
+    const meter = document.createElement('div');
+    meter.className = 'password-meter';
+    meter.setAttribute('aria-live', 'polite');
+    meter.innerHTML = '<div class="password-meter-bar"><span></span><span></span><span></span><span></span></div><div class="password-meter-text"></div>';
+    const anchor = input.closest('.password-input-wrap') || input;
+    anchor.insertAdjacentElement('afterend', meter);
+    const update = () => {
+      const username = userId ? $(userId)?.value : currentUser?.username;
+      const { score, label, hint } = passwordStrength(input.value, username);
+      meter.dataset.score = String(score);
+      meter.querySelector('.password-meter-text').textContent = label ? `${label} — ${hint}` : hint;
+    };
+    input.addEventListener('input', update);
+    input.addEventListener('focus', update); // fields are cleared without input events
+    if (userId) $(userId)?.addEventListener('input', update);
+    update();
+  });
 }
 
 function installPasswordVisibilityToggles() {

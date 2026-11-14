@@ -38,8 +38,8 @@ func (a *App) ChangePassword(currentPassword, newPassword, confirmation string) 
 	if a.currentUser == nil || time.Since(a.lastActivity) >= a.idleTimeoutLocked() {
 		return errors.New("sign in to BabyFileCab first")
 	}
-	if len(newPassword) < 8 {
-		return errors.New("password must be at least 8 characters")
+	if err := validateNewPassword(a.currentUser.Username, newPassword); err != nil {
+		return err
 	}
 	if newPassword != confirmation {
 		return errors.New("passwords do not match")
