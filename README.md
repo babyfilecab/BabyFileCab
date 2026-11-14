@@ -21,9 +21,15 @@ This is the heart of BabyFileCab.
   Notices, whatever fits how you work).
 - **Drag and drop.** Drop files from your desktop straight onto a client,
   year or section. Move documents between folders the same way.
+- **Scan inbox.** Point BabyFileCab at the folder your scanner or phone app
+  saves to. New scans wait in an Inbox until you file them into a client.
 - **Preview without opening.** PDFs, Word, Excel, CSV, email (.eml),
-  images and text files show up right in the window. Large PDFs page through
-  quickly and you can rotate and zoom.
+  images and text files show up right in the window, with nothing extra to
+  install. Large PDFs page through quickly and you can rotate and zoom.
+- **Previous versions.** Upload a file with the same name and the old copy is
+  kept as a previous version you can open or restore.
+- **Recycle Bin.** Deleted files, tax years and clients can be restored for
+  30 days.
 - **Find anything.** Global Find searches client names, file names,
   descriptions and keywords across the whole firm. Inside a PDF, Ctrl+F
   highlights every match on the page.
@@ -31,9 +37,9 @@ This is the heart of BabyFileCab.
   mark shows in the tree, so you can see at a glance what is left to enter.
 - **Client notes and history.** Each client has a formatted notes page and
   an audit trail showing who added, moved, renamed or deleted what, and when.
-- **Backups and archiving.** Back up a single client to one encrypted file,
-  restore it later, or archive clients you no longer work with without
-  deleting anything.
+- **Backups and archiving.** Automatic daily or weekly backups of everything
+  to a drive of your choice, one-client backups, and an Archive for clients
+  you no longer work with.
 
 ## Security
 
@@ -87,11 +93,11 @@ and choose *Open*.
 **Linux:** extract the `.tar.gz` and run `./install.sh` inside it. BabyFileCab
 then shows up in your applications menu under Office. Run
 `./install.sh --uninstall` to remove it. You need WebKitGTK 4.1, which most
-current distributions already have. For PDF previews install
-`poppler-utils`.
+current distributions already have.
 
-Your data lives in a `BabyFileCabData` folder in your home directory. Back
-up that whole folder from time to time, and always before upgrading. The
+Your data lives in a `BabyFileCabData` folder in your home directory. Turn on
+**Settings › Automatic Backups** and point it at an external drive, or back up
+that whole folder yourself, and always before upgrading. The
 `.vault-keys` folder inside it is what unlocks your files, so keep it with
 the rest of the data.
 
@@ -139,17 +145,25 @@ Press **F1** in the app for the full manual. The ones I use most:
 |------|--------------|
 | `main.go` | Startup, window and auto-lock |
 | `auth.go`, `password_*.go`, `accounts_sqlite.go` | Accounts and sign-in |
-| `vault.go`, `secure_storage.go`, `vault_backup.go` | Encryption and backups |
+| `vault.go`, `secure_storage.go`, `vault_backup.go` | Encryption and client backups |
+| `backup_auto.go` | Automatic backups and restore |
 | `clients.go`, `tree.go`, `documents.go`, `notes.go` | The document cabinet |
-| `preview.go` | Previews and PDF search |
+| `recycle.go`, `versions.go`, `inbox.go` | Recycle Bin, previous versions, scan inbox |
+| `preview.go` | Document previews |
 | `calendar*.go`, `timesheet.go` | Firm Calendar and time sheet |
 | `invoice.go`, `engagement_letter.go` | Letters and invoices |
 | `audit.go`, `audit_sqlite.go` | Audit trail |
-| `frontend/dist/` | The interface (plain HTML, CSS and JavaScript) |
+| `updates.go` | Once-a-day check for a newer release |
+| `frontend/dist/js/` | The interface, one file per feature |
+| `frontend/dist/js/tax-data.js` | Tax figures and exchange rates (update yearly) |
+| `frontend/dist/css/` | `base.css` layout, `theme.css` colors and look |
+| `frontend/dist/vendor/pdfjs/` | PDF.js, the built-in PDF viewer |
 
 ## A note on syncing
 
 BabyFileCab is local-first on purpose. Everything stays on the computer it is
-installed on, and separate computers do not sync with each other.
+installed on, and separate computers do not sync with each other. The only
+time it goes online is a once-a-day check of this project's public releases
+page for a newer version, which you can turn off under Settings.
 
 Release notes for every version are in [CHANGELOG.md](CHANGELOG.md).

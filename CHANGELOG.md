@@ -1,5 +1,30 @@
 # Changelog
 
+## v2.1.1 (November 2026)
+
+### New
+- **PDF previews work everywhere.** PDFs now open in a viewer built into
+  BabyFileCab, so previews and Find in PDF work on Windows and Mac without
+  installing anything. PDFs are decrypted in memory, never to a temp file.
+- **Recycle Bin.** Deleted files, tax years and clients go to File › Recycle
+  Bin and can be restored for 30 days, descriptions and all.
+- **Previous versions.** Uploading a file with the same name as an existing
+  document keeps the old copy as a previous version instead of making
+  "name (2).pdf". Open or restore it from Document Properties.
+- **Scan inbox.** Settings › Scan Inbox Folder watches the folder your
+  scanner saves to. New scans appear under an Inbox button; pick the client
+  and folder and click File.
+- **Automatic backups.** Settings › Automatic Backups saves a verified copy of
+  everything to an external drive or network folder every day or week.
+  Restore from the sign-in screen.
+- **Update notice.** A banner lets you know when a newer version is out.
+  Turn it off under Settings › Check for Updates.
+
+### Improved
+- Tax brackets, deductions and IRS exchange rates live in one file
+  (`frontend/dist/js/tax-data.js`) with instructions for the yearly update.
+- The interface code is split into one file per feature.
+
 ## v2.1.0 (November 2026)
 
 ### New
