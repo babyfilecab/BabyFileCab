@@ -2369,3 +2369,61 @@ tr:first-child { background: var(--panel-2); font-weight: 600; }
 .needs-attention-snooze { margin-right: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
 :root[data-theme="dark"] .attention-button { background: rgba(245, 158, 11, .12); border-color: rgba(245, 158, 11, .45); color: #fbbf24; }
 :root[data-theme="dark"] .attention-button:hover { background: rgba(245, 158, 11, .2); }
+
+/* Dialogs: invoice, engagement letter, tax calculator, time sheet, users -- */
+.auth-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .08em; color: var(--muted); }
+.modal h2 { font-weight: 600; }
+.modal label, .modal .tax-field > span, .modal .account-field > span { color: var(--text-2); }
+.modal input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]),
+.modal select,
+.modal textarea {
+  background-color: #fff;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  color: var(--text);
+  box-shadow: none;
+}
+.modal input:focus, .modal select:focus, .modal textarea:focus,
+.modal input:focus-visible, .modal select:focus-visible, .modal textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.modal input:disabled, .modal select:disabled, .modal textarea:disabled { background-color: var(--panel); color: var(--muted); }
+.modal .money-input { border: 1px solid var(--line-strong); border-radius: 6px; background: #fff; }
+.modal .money-input:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+.modal .money-input > span { color: var(--muted); font-weight: 600; }
+.modal .money-input input, .modal .money-input input:focus { border: 0 !important; border-left: 1px solid var(--line) !important; border-radius: 0; box-shadow: none !important; }
+.tax-calculator-heading { background: #fff; border-bottom: 1px solid var(--line); }
+.engagement-letter-heading { border-bottom: 1px solid var(--line); }
+.communications-table th { background: var(--panel); color: var(--muted); font-size: 11.5px; font-weight: 600; letter-spacing: .05em; }
+.communications-table td { border-color: var(--line); }
+.manage-users-table-wrap { border-color: var(--line); border-radius: 8px; }
+.manage-users-table tr:first-child { background: transparent; font-weight: inherit; }
+.manage-users-table tbody tr:hover { background: var(--panel); }
+/* Time sheet: keep "Add Time" inside the dialog on narrower windows. */
+.time-sheet-entry-grid { grid-template-columns: 170px minmax(160px, 1fr) minmax(160px, 1fr) 110px auto; gap: 10px; }
+.time-sheet-entry-actions { flex-wrap: wrap; }
+@media (max-width: 1000px) { .time-sheet-entry-grid { grid-template-columns: 1fr 1fr; } }
+
+:root[data-theme="dark"] .modal input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]),
+:root[data-theme="dark"] .modal select,
+:root[data-theme="dark"] .modal textarea,
+:root[data-theme="dark"] .modal .money-input { background-color: var(--bg); border-color: var(--line-strong); color: var(--text); }
+:root[data-theme="dark"] .modal input:disabled, :root[data-theme="dark"] .modal select:disabled { background-color: var(--panel-2); }
+:root[data-theme="dark"] .tax-calculator-heading { background: var(--panel); border-color: var(--line); }
+:root[data-theme="dark"] .communications-table th { background: var(--panel-2); color: var(--muted); }
+:root[data-theme="dark"] .manage-users-table tbody tr:hover { background: var(--panel-2); }
+
+/* One-row toolbar ------------------------------------------------------------ */
+.toolbar { flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding-bottom: 1px; }
+.toolbar-group { flex: 0 0 auto; }
+.toolbar-group + .toolbar-group { padding-left: 10px; margin-left: 4px; }
+.toolbar-group-files { margin-left: auto !important; border-left: 0 !important; }
+@media (max-width: 1120px) { .toolbar-group { flex: 0 0 auto; } }
+@media (max-width: 1180px) { .toolbar { flex-wrap: wrap; overflow-x: visible; } .toolbar-group-files { margin-left: 0 !important; } }
+.tax-calculator-notice { background: var(--accent-soft); border-color: #bfdbfe; color: var(--text-2); }
+:root[data-theme="dark"] button.secondary { background: var(--panel-2); border-color: var(--line-strong); color: var(--text-2); }
+:root[data-theme="dark"] button.secondary:hover { background: #273449; border-color: #475569; color: #f8fafc; }
+:root[data-theme="dark"] .tax-calculator-notice { background: var(--accent-soft); border-color: rgba(59,130,246,.35); color: var(--text-2); }
+:root[data-theme="dark"] .modal label, :root[data-theme="dark"] .modal .tax-field > span { color: var(--text-2); }

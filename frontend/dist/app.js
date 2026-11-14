@@ -873,7 +873,7 @@ async function showEngagementLetter() {
   fillTaxYearSelect($('engagementTaxYear'));
   $('engagementFeeType').value = 'Flat Fee';
   $('engagementFeeValue').value = '';
-  $('engagementDate').value = new Date().toISOString().slice(0, 10);
+  $('engagementDate').value = localISODate();
   $('engagementClientSummary').textContent = `${engagementLetterClients.length} active client${engagementLetterClients.length === 1 ? '' : 's'} available. Choose one from the dropdown.`;
   $('engagementPreparerSummary').textContent = 'Choose the preparer responsible for this engagement.';
 
@@ -1129,7 +1129,7 @@ function invoiceAddDaysISO(iso, days) {
   const d = new Date(String(iso || '') + 'T12:00:00');
   if (Number.isNaN(d.getTime())) return '';
   d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  return localISODate(d);
 }
 
 
@@ -1165,7 +1165,7 @@ async function showInvoiceGenerator() {
   preparerSelect.value = '';
   $('invoicePreparerSummary').textContent = 'Choose the preparer responsible for this invoice.';
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localISODate();
   $('invoiceService').value = '';
   fillTaxYearSelect($('invoiceTaxYear'));
   $('invoiceNumber').value = invoiceDefaultNumber();
@@ -1182,7 +1182,7 @@ async function showInvoiceGenerator() {
   $('invoiceBackdrop').classList.remove('hidden');
   const invoiceScroll = $('invoiceScrollContent');
   if (invoiceScroll) invoiceScroll.scrollTop = 0;
-  setTimeout(() => { clientSelect.focus(); syncInvoiceVisibleScrollbar(); }, 30);
+  setTimeout(() => clientSelect.focus(), 30);
 }
 
 function hideInvoiceGenerator() {
@@ -3890,7 +3890,7 @@ function renderFolderInfo(node) {
     <div class="preview-header"><div class="preview-title">${escapeHTML(node.name)}</div></div>
     <div class="preview-body">
       <h2>${escapeHTML(node.name)}</h2>
-      <p>Select a document beneath this folder to preview it, or use <b>Upload Files</b> above.</p>
+      <p>Select a document beneath this folder to preview it, or use <b>Upload</b> above.</p>
     </div>`;
 }
 
