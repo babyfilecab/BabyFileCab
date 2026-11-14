@@ -155,6 +155,13 @@ func (a *App) moveToRecycleBin(path, kind, location string) error {
 		_ = os.Remove(filepath.Dir(dest))
 		return fmt.Errorf("move to Recycle Bin: %w", err)
 	}
+	if kind == "file" {
+		// Previous versions go with the document.
+		if _, err := os.Stat(versionsFolder(path)); err == nil {
+			_ = os.Rename(versionsFolder(path), filepath.Join(filepath.Dir(dest), versionsDirName))
+			removeEmptyVersionsDir(filepath.Dir(path))
+		}
+	}
 	items = append(items, item)
 	if err := a.saveRecycleIndex(items); err != nil {
 		// Without an index entry the item could never be restored, so put it back.
@@ -270,7 +277,12 @@ func (a *App) RestoreFromRecycleBin(id string) (string, error) {
 	if err := os.Rename(src, dest); err != nil {
 		return "", fmt.Errorf("restore: %w", err)
 	}
-	_ = os.Remove(filepath.Dir(src))
+	if held := filepath.Join(filepath.Dir(src), versionsDirName); item.Kind == "file" {
+		if _, err := os.Stat(held); err == nil && os.MkdirAll(filepath.Dir(versionsFolder(dest)), 0700) == nil {
+			_ = os.Rename(held, versionsFolder(dest))
+		}
+	}
+	_ = os.RemoveAll(filepath.Dir(src))
 	rel, _ := filepath.Rel(a.dataRoot, dest)
 	newKey := filepath.ToSlash(rel)
 	a.remapMetadataKeys(a.recycleItemKey(item), newKey)

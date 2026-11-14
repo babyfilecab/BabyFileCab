@@ -78,9 +78,56 @@ async function showDocumentProperties(doc) {
     $('docPropertySize').textContent = formatFileSize(props.size || 0);
     $('docPropertyModified').textContent = props.modified ? new Date(props.modified).toLocaleString() : '—';
     $('documentDescriptionInput').value = props.description || '';
+    await renderDocumentVersions(documentPropertiesPath);
     $('documentPropertiesBackdrop').classList.remove('hidden');
     setTimeout(() => $('documentDescriptionInput').focus(), 20);
   } catch (e) { showError(e); }
+}
+
+async function renderDocumentVersions(path) {
+  const versions = await backend().ListDocumentVersions(path) || [];
+  const list = $('documentVersionsList');
+  list.replaceChildren();
+  $('documentVersionsSection').classList.toggle('hidden', versions.length === 0);
+  versions.forEach(version => {
+    const li = document.createElement('li');
+    li.className = 'needs-attention-item';
+    const info = document.createElement('div');
+    const when = document.createElement('strong');
+    when.textContent = new Date(version.savedAt).toLocaleString();
+    const size = document.createElement('span');
+    size.textContent = formatFileSize(version.size || 0);
+    info.append(when, size);
+    const actions = document.createElement('div');
+    actions.className = 'recycle-bin-actions';
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'secondary';
+    open.textContent = 'Open';
+    open.dataset.versionOpen = version.id;
+    const restore = document.createElement('button');
+    restore.type = 'button';
+    restore.className = 'secondary';
+    restore.textContent = 'Restore';
+    restore.dataset.versionRestore = version.id;
+    actions.append(open, restore);
+    li.append(info, actions);
+    list.appendChild(li);
+  });
+}
+
+async function handleDocumentVersionClick(e) {
+  const path = documentPropertiesPath;
+  if (!path) return;
+  const open = e.target.closest('[data-version-open]');
+  if (open) { await backend().OpenDocumentVersion(path, open.dataset.versionOpen); return; }
+  const restore = e.target.closest('[data-version-restore]');
+  if (!restore) return;
+  if (!confirm('Make this version the current document? The current copy will be kept as a previous version.')) return;
+  await backend().RestoreDocumentVersion(path, restore.dataset.versionRestore);
+  await renderDocumentVersions(path);
+  if (selectedNode?.path === path) await showSelection(selectedNode);
+  toast('Previous version restored.');
 }
 
 function hideDocumentProperties() {

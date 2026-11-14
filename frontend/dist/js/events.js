@@ -2,6 +2,7 @@
 
 function wireEvents() {
   wireRecycleBin();
+  $('documentVersionsList').addEventListener('click', e => call(() => handleDocumentVersionClick(e)));
   $('needsAttentionBtn').addEventListener('click', () => call(() => refreshNeedsAttention({ open: true })));
   $('needsAttentionClose').addEventListener('click', hideNeedsAttention);
   $('needsAttentionCloseTop').addEventListener('click', hideNeedsAttention);

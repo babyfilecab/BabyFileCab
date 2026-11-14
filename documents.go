@@ -164,24 +164,22 @@ func (a *App) UploadFiles(targetPath string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	var copied []string
+	var copied, updated []string
 	for _, src := range files {
 		if src == "" {
 			continue
 		}
-		dst := uniqueDestination(filepath.Join(targetPath, filepath.Base(src)))
-		if err := a.secureCopyFile(src, dst); err != nil {
+		dst := filepath.Join(targetPath, filepath.Base(src))
+		replaced, err := a.storeNewVersion(src, dst)
+		if err != nil {
 			return copied, err
 		}
 		copied = append(copied, dst)
-	}
-	if len(copied) > 0 {
-		names := make([]string, 0, len(copied))
-		for _, p := range copied {
-			names = append(names, filepath.Base(p))
+		if replaced {
+			updated = append(updated, filepath.Base(dst))
 		}
-		_ = a.appendAudit(targetPath, "Files uploaded", strings.Join(names, ", "))
 	}
+	a.auditImported(targetPath, "Files uploaded", copied, updated)
 	return copied, nil
 }
 
@@ -223,6 +221,7 @@ func (a *App) MoveDocument(sourcePath, targetPath string) (string, error) {
 		return "", err
 	}
 	a.moveDocumentMetadata(sourcePath, destPath)
+	moveVersions(sourcePath, destPath)
 
 	// Record the move in the destination client's audit trail. If the move
 	// crosses clients, also leave a history entry in the source client.
@@ -253,7 +252,7 @@ func (a *App) ImportDroppedFiles(targetPath string, paths []string) ([]string, e
 	if err != nil {
 		return nil, err
 	}
-	var copied []string
+	var copied, updated []string
 	for _, src := range paths {
 		src = strings.TrimSpace(src)
 		if src == "" {
@@ -263,20 +262,20 @@ func (a *App) ImportDroppedFiles(targetPath string, paths []string) ([]string, e
 		if err != nil || info.IsDir() {
 			continue
 		}
-		dst := uniqueDestination(filepath.Join(targetPath, filepath.Base(src)))
-		if err := a.secureCopyFile(src, dst); err != nil {
+		dst := filepath.Join(targetPath, filepath.Base(src))
+		replaced, err := a.storeNewVersion(src, dst)
+		if err != nil {
 			return copied, err
 		}
 		copied = append(copied, dst)
+		if replaced {
+			updated = append(updated, filepath.Base(dst))
+		}
 	}
 	if len(copied) == 0 {
 		return nil, errors.New("no files were dropped")
 	}
-	names := make([]string, 0, len(copied))
-	for _, p := range copied {
-		names = append(names, filepath.Base(p))
-	}
-	_ = a.appendAudit(targetPath, "Files added by drag and drop", strings.Join(names, ", "))
+	a.auditImported(targetPath, "Files added by drag and drop", copied, updated)
 	return copied, nil
 }
 
@@ -306,6 +305,7 @@ func (a *App) RenameFile(path, newName string) (string, error) {
 		return "", err
 	}
 	a.moveDocumentMetadata(path, newPath)
+	moveVersions(path, newPath)
 	_ = a.appendAudit(newPath, "File renamed", fmt.Sprintf("%s → %s", oldName, newName))
 	return newPath, nil
 }
@@ -353,7 +353,7 @@ func (a *App) safePath(path string) (string, error) {
 	}
 	relPath, _ := filepath.Rel(root, abs)
 	for _, part := range splitRel(relPath) {
-		if part == vaultDBName || part == vaultReadyName || part == accountsDBName || part == accountsReadyName || part == ".vault-keys" || part == ".migration-backups" || part == ".plaintext-preview" || part == recycleBinDir || part == ".users.json" || part == ".companies.json" || part == clientProfileFile || part == documentMetadataFile || part == firmCalendarFile {
+		if part == vaultDBName || part == vaultReadyName || part == accountsDBName || part == accountsReadyName || part == ".vault-keys" || part == ".migration-backups" || part == ".plaintext-preview" || part == recycleBinDir || part == versionsDirName || part == ".users.json" || part == ".companies.json" || part == clientProfileFile || part == documentMetadataFile || part == firmCalendarFile {
 			return "", errors.New("this is an internal BabyFileCab file")
 		}
 	}
@@ -618,4 +618,21 @@ func splitRel(rel string) []string {
 		return nil
 	}
 	return strings.FieldsFunc(rel, func(r rune) bool { return r == '/' || r == '\\' })
+}
+
+// auditImported records added files, noting which ones replaced an existing
+// document (whose old copy is kept as a previous version).
+func (a *App) auditImported(targetPath, action string, copied, updated []string) {
+	if len(copied) == 0 {
+		return
+	}
+	names := make([]string, 0, len(copied))
+	for _, p := range copied {
+		names = append(names, filepath.Base(p))
+	}
+	details := strings.Join(names, ", ")
+	if len(updated) > 0 {
+		details += " (new version of " + strings.Join(updated, ", ") + ")"
+	}
+	_ = a.appendAudit(targetPath, action, details)
 }

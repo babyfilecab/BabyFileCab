@@ -345,3 +345,8 @@ tr:first-child { background: var(--panel-2); font-weight: 600; }
 .recycle-bin-actions { display: flex; gap: 6px; flex: 0 0 auto; }
 .recycle-bin-empty { margin: 8px 0 0; padding: 22px; text-align: center; color: var(--muted); border: 1px dashed var(--line-strong); border-radius: 8px; }
 .recycle-bin-empty.hidden { display: none; }
+.document-versions { margin-top: 14px; }
+.document-versions.hidden { display: none; }
+.document-versions-title { display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-2); }
+.document-versions .needs-attention-list { max-height: 220px; }
+.document-versions small { display: block; margin-top: 6px; color: var(--muted); }

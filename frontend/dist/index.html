@@ -370,6 +370,11 @@
         <textarea id="documentDescriptionInput" rows="6" placeholder="Describe this document so you can find it quickly with Global Find…"></textarea>
         <small>Global Find searches both the document name and this description.</small>
       </label>
+      <div id="documentVersionsSection" class="document-versions hidden">
+        <span class="document-versions-title">Previous versions</span>
+        <ul id="documentVersionsList" class="needs-attention-list"></ul>
+        <small>Uploading a file with the same name saves the old copy here. Up to 20 versions are kept.</small>
+      </div>
       <div class="modal-actions">
         <button id="documentPropertiesCancel" class="secondary">Cancel</button>
         <button id="documentPropertiesSave" class="primary">Save Description</button>
