@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=BabyFileCab
+GenericName=Document Management
+Comment=Secure local document workspace for tax and accounting professionals
+Exec=@BIN@
+Icon=@ICON@
+Terminal=false
+Categories=Office;Finance;
+Keywords=tax;accounting;documents;clients;vault;
+StartupNotify=true
+StartupWMClass=@WMCLASS@
