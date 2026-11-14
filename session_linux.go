@@ -4,8 +4,9 @@ package main
 
 import (
 	"context"
-	"github.com/godbus/dbus/v5"
 	"os"
+
+	"github.com/godbus/dbus/v5"
 )
 
 func (a *App) startSessionMonitor(ctx context.Context) {
