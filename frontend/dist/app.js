@@ -3955,14 +3955,21 @@ function updatePDFSearchMatch(totalOverride = null) {
 }
 
 function highlightSearchText(text, query) {
-  let html = escapeHTML(text);
-  const terms = query.trim().split(/\s+/).filter(Boolean).sort((a,b) => b.length - a.length);
-  for (const term of terms) {
-    const safe = escapeHTML(term).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    if (!safe) continue;
-    html = html.replace(new RegExp(`(${safe})`, 'gi'), '<mark>$1</mark>');
+  // Match all terms in one pass over the raw text, then escape each piece, so a
+  // later term can never match inside an earlier <mark> tag or an &amp; entity.
+  const terms = String(query || '').trim().split(/\s+/).filter(Boolean)
+    .sort((a,b) => b.length - a.length)
+    .map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const raw = String(text || '');
+  if (!terms.length) return escapeHTML(raw);
+  const pattern = new RegExp(terms.join('|'), 'gi');
+  let html = '', last = 0;
+  for (const match of raw.matchAll(pattern)) {
+    if (!match[0]) continue;
+    html += escapeHTML(raw.slice(last, match.index)) + '<mark>' + escapeHTML(match[0]) + '</mark>';
+    last = match.index + match[0].length;
   }
-  return html;
+  return html + escapeHTML(raw.slice(last));
 }
 
 function updatePDFHighlights() {

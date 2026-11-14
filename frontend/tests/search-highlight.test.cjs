@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+const source=fs.readFileSync(path.join(__dirname,'../dist/app.js'),'utf8');
+const grab=name=>{const start=source.indexOf(`function ${name}(`);const end=source.indexOf('\n}\n',start);return source.slice(start,end+2);};
+const box={};vm.createContext(box);
+vm.runInContext(grab('escapeHTML')+grab('highlightSearchText'),box);
+const h=box.highlightSearchText;
+assert.equal(h('W-2 wages','wages'),'W-2 <mark>wages</mark>');
+assert.equal(h('Smith & Sons','amp'),'Smith &amp; Sons');
+assert.equal(h('mark down','mark ma'),'<mark>mark</mark> down');
+assert.equal(h('<b>tax</b>','tax'),'&lt;b&gt;<mark>tax</mark>&lt;/b&gt;');
+assert.equal(h('Form 1099.INT','1099.'),'Form <mark>1099.</mark>INT');
+assert.equal(h('nothing here',''),'nothing here');
+console.log('search highlight tests passed');

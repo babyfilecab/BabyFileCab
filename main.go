@@ -937,9 +937,11 @@ func (a *App) Login(username, password string) (UserProfile, error) {
 		}
 		root, err := a.companyDataRootUnlocked(company)
 		if err != nil {
+			zeroBytes(vaultKey)
 			return UserProfile{}, err
 		}
 		if err := os.MkdirAll(root, 0700); err != nil {
+			zeroBytes(vaultKey)
 			return UserProfile{}, fmt.Errorf("open company data folder: %w", err)
 		}
 		if err := migrateCompanyData(root, a.storageRoot, company.ID, vaultKey); err != nil {
@@ -961,15 +963,18 @@ func (a *App) Login(username, password string) (UserProfile, error) {
 		}
 		profileDB, err := openVaultDB(root)
 		if err != nil {
+			zeroBytes(vaultKey)
 			return UserProfile{}, err
 		}
 		profileBytes, err := metadataGet(profileDB, vaultKey, "user-profile", strings.ToLower(u.Username))
 		_ = profileDB.Close()
 		if err != nil {
+			zeroBytes(vaultKey)
 			return UserProfile{}, err
 		}
 		var profile UserProfile
 		if err := json.Unmarshal(profileBytes, &profile); err != nil {
+			zeroBytes(vaultKey)
 			return UserProfile{}, err
 		}
 		profile.CompanyName = company.Name
@@ -5454,9 +5459,10 @@ func decodeEmailTransfer(r io.Reader, encoding string) io.Reader {
 	}
 }
 
+var htmlTagPattern = regexp.MustCompile(`(?s)<[^>]*>`)
+
 func stripHTML(s string) string {
-	re := regexp.MustCompile(`(?s)<[^>]*>`)
-	s = re.ReplaceAllString(s, " ")
+	s = htmlTagPattern.ReplaceAllString(s, " ")
 	s = html.UnescapeString(s)
 	return strings.Join(strings.Fields(s), " ")
 }
@@ -5465,7 +5471,9 @@ func openPath(path string) error {
 	var cmd *exec.Cmd
 	switch goruntime.GOOS {
 	case "windows":
-		cmd = exec.Command("cmd", "/c", "start", "", path)
+		// Do not route through cmd.exe: Go only quotes arguments containing
+		// spaces, so a file name like "a&calc.pdf" would run a second command.
+		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", path)
 	case "darwin":
 		cmd = exec.Command("open", path)
 	default:
