@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.1.2 (November 2026)
+
+- New app icon on Windows, Mac and Linux: the BabyFileCab file cabinet
+  replaces the placeholder "W" icon. On Linux the window and taskbar now
+  show it too.
+
 ## v2.1.1 (November 2026)
 
 ### New

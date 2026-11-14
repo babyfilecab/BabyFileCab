@@ -16,11 +16,12 @@ import (
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/linux"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // appVersion must match "productVersion" in wails.json.
-const appVersion = "2.1.1"
+const appVersion = "2.1.2"
 
 const (
 	appTitle             = "BabyFileCab — Local Document Management"
@@ -37,6 +38,12 @@ const (
 
 //go:embed all:frontend/dist
 var embeddedAssets embed.FS
+
+// Window and taskbar icon on Linux. Windows and macOS take theirs from
+// build/windows/icon.ico and build/appicon.png at build time.
+//
+//go:embed build/appicon.png
+var appIcon []byte
 
 type App struct {
 	ctx         context.Context
@@ -95,6 +102,10 @@ func main() {
 			DisableWebViewDrop: false,
 		},
 		Bind: []interface{}{app},
+		Linux: &linux.Options{
+			Icon:        appIcon,
+			ProgramName: "BabyFileCab",
+		},
 	})
 	if err != nil {
 		log.Fatal(err)
