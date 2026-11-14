@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
-const source=fs.readFileSync(path.join(__dirname,'../dist/app.js'),'utf8');
+const source=fs.readFileSync(path.join(__dirname,'../dist/app.js'),'utf8').replace(/\r\n/g,'\n');
 const grab=name=>{const start=source.indexOf(`function ${name}(`);const end=source.indexOf('\n}\n',start);return source.slice(start,end+2);};
 const box={};vm.createContext(box);
 vm.runInContext(grab('escapeHTML')+grab('highlightSearchText'),box);

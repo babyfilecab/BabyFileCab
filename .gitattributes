@@ -1,0 +1,5 @@
+# Keep LF line endings on every platform (tests read source files directly).
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.exe binary
