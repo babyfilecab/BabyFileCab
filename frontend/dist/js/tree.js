@@ -243,6 +243,7 @@ async function selectNode(node, element = null, preserveFileSelection = false) {
 async function showSelection(node) {
   const generation = sessionGeneration;
   currentPDF = null;
+  closePDFDocument();
   pdfSearchResults = [];
   pdfSearchIndex = -1;
   if (node.type === 'client' || node.type === 'permanent' || (node.type === 'file' && node.name === 'notes.txt')) {

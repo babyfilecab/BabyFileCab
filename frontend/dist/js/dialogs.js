@@ -178,6 +178,8 @@ function applyTheme(theme, persist = true) {
 }
 
 function clearPreview() {
+  currentPDF = null;
+  closePDFDocument();
   $('selectionTitle').textContent = 'Select a client or document';
   $('selectionClientName').textContent = '—';
   $('selectionReturnType').textContent = '—';

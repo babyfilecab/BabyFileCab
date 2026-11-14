@@ -26,7 +26,7 @@ async function renderPreview(p) {
       <div class="pdf-controls">
         <div class="pdf-page-controls">
           <button id="pdfPrev">◀ Previous</button>
-          <strong id="pdfLabel">Page 1 of ${p.pageCount}</strong>
+          <strong id="pdfLabel">Page 1</strong>
           <button id="pdfNext">Next ▶</button>
         </div>
         <div class="pdf-zoom-controls">
@@ -37,10 +37,10 @@ async function renderPreview(p) {
         </div>
       </div>
       <div class="preview-body pdf-preview-body">
-        <div id="pdfLoading">Rendering PDF page…</div>
+        <div id="pdfLoading">Opening PDF…</div>
         <div id="pdfRotateStage" class="pdf-rotate-stage">
           <div id="pdfPageWrap" class="pdf-page-wrap">
-            <img id="pdfImage" class="pdf-page" alt="PDF page preview" />
+            <canvas id="pdfCanvas" class="pdf-page" role="img" aria-label="PDF page preview"></canvas>
             <div id="pdfSearchHighlights" class="pdf-search-highlights" aria-hidden="true"></div>
           </div>
         </div>
@@ -76,8 +76,8 @@ async function renderPreview(p) {
         clearPDFSearch();
         return;
       }
-      // Windows-style find-as-you-type. A short debounce prevents launching
-      // multiple Poppler searches while the user is still typing.
+      // Find-as-you-type with a short pause so each keystroke doesn't start
+      // a new search while the user is still typing.
       pdfSearchTimer = setTimeout(() => searchCurrentPDF(), 160);
     });
     $('pdfMatchPrev').addEventListener('click', () => movePDFSearchMatch(-1));
@@ -118,43 +118,55 @@ async function loadPDFPage() {
   if (!currentPDF) return;
   const generation = sessionGeneration;
   const pdf = currentPDF;
-  const requestedPage = pdfPage;
-  $('pdfLoading').style.display = 'block';
-  $('pdfPageWrap').style.display = 'none';
+  const stale = () => generation !== sessionGeneration || currentPDF !== pdf || !currentUser;
+  const firstOpen = pdfDocumentFor !== pdf;
+  if (firstOpen) {
+    $('pdfLoading').style.display = 'block';
+    $('pdfPageWrap').style.display = 'none';
+  }
   try {
-    const data = await backend().RenderPDFPage(pdf.path, requestedPage);
-    if (generation !== sessionGeneration || currentPDF !== pdf || !currentUser) return;
-    const img = $('pdfImage');
-    await new Promise((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error('Could not display the rendered PDF page.'));
-      img.src = data;
-    });
-    if (generation !== sessionGeneration || currentPDF !== pdf || !currentUser) return;
+    if (firstOpen && !(await openPDFDocument(pdf))) return;
+    if (stale()) return;
+    await pdfPageSize(pdfPage);
+    if (stale()) return;
     $('pdfPageWrap').style.display = 'inline-block';
-    applyPDFZoom();
+    await applyPDFZoom();
+    if (stale()) return;
     $('pdfLoading').style.display = 'none';
     $('pdfLabel').textContent = `Page ${pdfPage} of ${currentPDF.pageCount}`;
     $('pdfPrev').disabled = pdfPage <= 1;
     $('pdfNext').disabled = pdfPage >= currentPDF.pageCount;
     updatePDFHighlights();
-  } catch (e) { showError(e); }
+  } catch (e) {
+    if (stale()) return;
+    const message = pdfOpenErrorMessage(e);
+    if (message) {
+      $('pdfLoading').textContent = message;
+      $('pdfLoading').style.display = 'block';
+      $('pdfPageWrap').style.display = 'none';
+    } else {
+      showError(e);
+    }
+  }
 }
 
 function applyPDFZoom() {
-  const img = $('pdfImage');
+  const canvas = $('pdfCanvas');
   const wrap = $('pdfPageWrap');
   const stage = $('pdfRotateStage');
   const body = document.querySelector('.pdf-preview-body');
-  if (!img || !wrap || !stage || !body || !img.naturalWidth || !img.naturalHeight) return;
+  const size = pdfPageSizes.get(pdfPage);
+  if (!canvas || !wrap || !stage || !body || !size) return Promise.resolve();
 
-  const fitWidth = Math.max(320, Math.min(img.naturalWidth, body.clientWidth - 42));
+  // Same default size as before: the page at 130 dpi, shrunk to fit the pane.
+  const naturalWidth = size.width * 130 / 72;
+  const fitWidth = Math.max(320, Math.min(naturalWidth, body.clientWidth - 42));
   const width = Math.round(fitWidth * pdfZoom);
-  const height = Math.max(1, Math.round(width * (img.naturalHeight / img.naturalWidth)));
+  const height = Math.max(1, Math.round(width * (size.height / size.width)));
 
-  img.style.width = `${width}px`;
-  img.style.height = `${height}px`;
-  img.style.maxWidth = 'none';
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
+  canvas.style.maxWidth = 'none';
   wrap.style.width = `${width}px`;
   wrap.style.height = `${height}px`;
   wrap.style.transformOrigin = 'top left';
@@ -183,6 +195,7 @@ function applyPDFZoom() {
     $('rotatePdfBtn').title = `Rotate PDF preview 90° clockwise (currently ${rotation}°)`;
   }
   updatePDFHighlights();
+  return drawPDFPage(pdfPage, width).catch(showError);
 }
 
 function rotateCurrentPDF() {
@@ -221,8 +234,9 @@ async function searchCurrentPDF() {
   $('pdfSearchStatus').textContent = 'Searching…';
   $('pdfSearchBtn').disabled = true;
   try {
-    const response = await backend().SearchPDF(pdf.path, query);
-    if (generation !== sessionGeneration || currentPDF !== pdf || !currentUser) return;
+    if (pdfDocumentFor !== pdf) return;
+    const response = await searchPDFText(query);
+    if (!response || generation !== sessionGeneration || currentPDF !== pdf || !currentUser) return;
     // Ignore an old result if the user typed something new while the backend was searching.
     if (($('pdfSearchInput')?.value.trim() || '') !== query) return;
 

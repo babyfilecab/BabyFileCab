@@ -21,7 +21,6 @@ import (
 	goruntime "runtime"
 	"strconv"
 	"strings"
-	"unicode"
 
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -34,6 +33,11 @@ func (a *App) GetPreview(path string) (Preview, error) {
 	name := filepath.Base(path)
 	ext := strings.ToLower(filepath.Ext(path))
 	p := Preview{Name: name, Path: path}
+	if ext == ".pdf" {
+		// Rendered in the window by PDF.js (see GetPDFData), which also counts pages.
+		p.Kind = "pdf"
+		return p, nil
+	}
 	previewPath, cleanup, err := a.decryptedTemp(path)
 	if err != nil {
 		return p, err
@@ -87,17 +91,6 @@ func (a *App) GetPreview(path string) (Preview, error) {
 		p.ImageData = "data:" + mt + ";base64," + base64.StdEncoding.EncodeToString(b)
 		return p, nil
 	}
-	if ext == ".pdf" {
-		count, err := pdfPageCount(previewPath)
-		if err != nil {
-			p.Kind = "unsupported"
-			p.Message = "PDF preview requires poppler-utils (pdfinfo and pdftoppm). The file is stored safely and can still be opened externally."
-			return p, nil
-		}
-		p.Kind = "pdf"
-		p.PageCount = count
-		return p, nil
-	}
 	if ext == ".docx" {
 		text, err := docxText(previewPath)
 		if err == nil && strings.TrimSpace(text) != "" {
@@ -111,7 +104,13 @@ func (a *App) GetPreview(path string) (Preview, error) {
 	return p, nil
 }
 
-func (a *App) RenderPDFPage(path string, page int) (string, error) {
+// maxPDFPreviewBytes keeps a single preview from exhausting memory; larger
+// files can still be opened in the desktop PDF reader.
+const maxPDFPreviewBytes = 150 << 20
+
+// GetPDFData returns a PDF from the vault, decrypted in memory and base64
+// encoded, for the built-in PDF.js viewer. No plaintext copy touches the disk.
+func (a *App) GetPDFData(path string) (string, error) {
 	path, err := a.requireType(path, "file")
 	if err != nil {
 		return "", err
@@ -119,187 +118,19 @@ func (a *App) RenderPDFPage(path string, page int) (string, error) {
 	if strings.ToLower(filepath.Ext(path)) != ".pdf" {
 		return "", errors.New("not a PDF file")
 	}
-	plainPath, cleanup, err := a.decryptedTemp(path)
+	info, err := os.Stat(path)
 	if err != nil {
 		return "", err
 	}
-	defer cleanup()
-	if page < 1 {
-		page = 1
+	if info.Size() > maxPDFPreviewBytes {
+		return "", errors.New("this PDF is too large to preview; use Open to view it in your PDF reader")
 	}
-	tmpDir, err := os.MkdirTemp(filepath.Join(a.storageRoot, ".plaintext-preview"), "pdf-")
+	data, err := a.secureReadFile(path)
 	if err != nil {
 		return "", err
 	}
-	defer os.RemoveAll(tmpDir)
-	out := filepath.Join(tmpDir, "page")
-	cmd := exec.Command("pdftoppm", "-f", strconv.Itoa(page), "-singlefile", "-png", "-r", "130", plainPath, out)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("PDF preview failed: %v: %s", err, strings.TrimSpace(string(output)))
-	}
-	b, err := os.ReadFile(out + ".png")
-	if err != nil {
-		return "", err
-	}
-	return "data:image/png;base64," + base64.StdEncoding.EncodeToString(b), nil
-}
-
-func (a *App) SearchPDF(path, query string) (PDFSearchResponse, error) {
-	path, err := a.requireType(path, "file")
-	if err != nil {
-		return PDFSearchResponse{}, err
-	}
-	if strings.ToLower(filepath.Ext(path)) != ".pdf" {
-		return PDFSearchResponse{}, errors.New("select a PDF file first")
-	}
-	query = strings.TrimSpace(query)
-	if query == "" {
-		return PDFSearchResponse{}, errors.New("enter a word or phrase to search")
-	}
-	plainPath, cleanup, err := a.decryptedTemp(path)
-	if err != nil {
-		return PDFSearchResponse{}, err
-	}
-	defer cleanup()
-
-	// -bbox gives us every searchable PDF word plus its exact page coordinates.
-	// This is more reliable than splitting the normal pdftotext output on page-break
-	// characters, and it lets the frontend highlight the actual match on the page.
-	cmd := exec.Command("pdftotext", "-bbox", "-enc", "UTF-8", plainPath, "-")
-	out, err := cmd.Output()
-	if err != nil {
-		detail := ""
-		if ee, ok := err.(*exec.ExitError); ok {
-			detail = strings.TrimSpace(string(ee.Stderr))
-		}
-		if detail != "" {
-			return PDFSearchResponse{}, fmt.Errorf("PDF search failed: %v: %s", err, detail)
-		}
-		return PDFSearchResponse{}, fmt.Errorf("PDF search requires poppler-utils (pdftotext): %v", err)
-	}
-
-	var doc pdfBBoxDocument
-	if err := xml.Unmarshal(out, &doc); err != nil {
-		return PDFSearchResponse{}, fmt.Errorf("could not read searchable PDF text: %w", err)
-	}
-
-	queryWords := normalizePDFSearchQuery(query)
-	if len(queryWords) == 0 {
-		return PDFSearchResponse{}, errors.New("enter a searchable word or phrase")
-	}
-
-	resp := PDFSearchResponse{Query: query}
-	const maxReturnedMatches = 500
-	totalWords := 0
-
-	for pageIndex, page := range doc.Pages {
-		if len(page.Words) == 0 {
-			continue
-		}
-		totalWords += len(page.Words)
-		normalized := make([]string, len(page.Words))
-		for i, word := range page.Words {
-			normalized[i] = normalizePDFSearchToken(word.Text)
-		}
-
-		for i := 0; i+len(queryWords) <= len(page.Words); i++ {
-			matched := true
-			for j, q := range queryWords {
-				// Match like a normal Ctrl+F search: case-insensitive and
-				// able to find a typed fragment inside a PDF word.
-				if q == "" || !strings.Contains(normalized[i+j], q) {
-					matched = false
-					break
-				}
-			}
-			if !matched {
-				continue
-			}
-
-			resp.Total++
-			if len(resp.Results) >= maxReturnedMatches {
-				continue
-			}
-
-			first := page.Words[i]
-			xMin, yMin, xMax, yMax := first.XMin, first.YMin, first.XMax, first.YMax
-			for _, w := range page.Words[i : i+len(queryWords)] {
-				if w.XMin < xMin {
-					xMin = w.XMin
-				}
-				if w.YMin < yMin {
-					yMin = w.YMin
-				}
-				if w.XMax > xMax {
-					xMax = w.XMax
-				}
-				if w.YMax > yMax {
-					yMax = w.YMax
-				}
-			}
-
-			resp.Results = append(resp.Results, PDFSearchMatch{
-				Page:       pageIndex + 1,
-				Snippet:    pdfWordSnippet(page.Words, i, len(queryWords)),
-				X:          xMin,
-				Y:          yMin,
-				Width:      xMax - xMin,
-				Height:     yMax - yMin,
-				PageWidth:  page.Width,
-				PageHeight: page.Height,
-			})
-		}
-	}
-
-	resp.Searchable = totalWords > 0
-	if !resp.Searchable {
-		resp.Message = "This PDF has no searchable text. It may be a scanned/image-only PDF."
-	} else if resp.Total == 0 {
-		resp.Message = fmt.Sprintf("No match for %q was found in this PDF.", query)
-	}
-	return resp, nil
-}
-
-func normalizePDFSearchQuery(query string) []string {
-	fields := strings.Fields(query)
-	out := make([]string, 0, len(fields))
-	for _, field := range fields {
-		if token := normalizePDFSearchToken(field); token != "" {
-			out = append(out, token)
-		}
-	}
-	return out
-}
-
-func normalizePDFSearchToken(s string) string {
-	s = strings.ToLower(strings.TrimSpace(s))
-	s = strings.TrimFunc(s, func(r rune) bool {
-		return !unicode.IsLetter(r) && !unicode.IsDigit(r)
-	})
-	return s
-}
-
-func pdfWordSnippet(words []pdfBBoxWord, matchStart, matchCount int) string {
-	start := matchStart - 8
-	if start < 0 {
-		start = 0
-	}
-	end := matchStart + matchCount + 10
-	if end > len(words) {
-		end = len(words)
-	}
-	parts := make([]string, 0, end-start)
-	for _, word := range words[start:end] {
-		parts = append(parts, strings.TrimSpace(word.Text))
-	}
-	snippet := strings.Join(parts, " ")
-	if start > 0 {
-		snippet = "…" + snippet
-	}
-	if end < len(words) {
-		snippet += "…"
-	}
-	return snippet
+	defer zeroBytes(data)
+	return base64.StdEncoding.EncodeToString(data), nil
 }
 
 func (a *App) OpenFile(path string) error {
@@ -358,19 +189,6 @@ func readCSV(path string, maxRows int) ([][]string, error) {
 		rows = append(rows, rec)
 	}
 	return rows, nil
-}
-
-func pdfPageCount(path string) (int, error) {
-	out, err := exec.Command("pdfinfo", path).Output()
-	if err != nil {
-		return 0, err
-	}
-	re := regexp.MustCompile(`(?m)^Pages:\s+(\d+)`)
-	m := re.FindStringSubmatch(string(out))
-	if len(m) != 2 {
-		return 0, errors.New("could not determine PDF page count")
-	}
-	return strconv.Atoi(m[1])
 }
 
 func docxText(path string) (string, error) {
