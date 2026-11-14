@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');const path=require('node:path');const vm=require('node:vm');
-const source=fs.readFileSync(path.join(__dirname,'../dist/app.js'),'utf8');
+const source=require('./source.cjs');
 const chunk=source.slice(source.indexOf('const NEEDS_ATTENTION_RULES'),source.indexOf('function needsAttentionSnoozeKey'));
 const labels={'waiting-for-signature':'Waiting for Signature','8879-sent':'8879 Sent','ready-to-e-file':'Ready to E-file','drafting':'Drafting','signed':'Signed'};
 const box={firmCalendarStatusLabel:s=>labels[s]||''};vm.createContext(box);

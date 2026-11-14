@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const source = fs.readFileSync(path.join(__dirname, '../dist/app.js'), 'utf8');
+const source = require('./source.cjs');
 const chunk = source.slice(source.indexOf('function fileSelectionRange('), source.indexOf('async function selectNode('));
 const row = (filePath, open = true) => ({dataset: {path: filePath}, parentElement: {tagName: 'DETAILS', open, parentElement: null}});
 const rows = [row('/client/a'), row('/client/hidden', false), row('/client/b'), row('/client/c'), row('/other/d')];

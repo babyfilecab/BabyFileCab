@@ -1224,10 +1224,7 @@
           <div class="tax-input-grid">
             <label class="tax-field">
               <span>Tax year</span>
-              <select id="taxYear">
-                <option value="2025" selected>2025</option>
-                <option value="2026">2026</option>
-              </select>
+              <select id="taxYear"></select>
               <small>Choose the tax year before calculating.</small>
             </label>
             <label class="tax-field">
@@ -1396,14 +1393,8 @@
         <div class="currency-converter-grid">
           <label class="currency-converter-field">
             <span>Rate year</span>
-            <select id="currencyConverterYear">
-              <option value="2025" selected>2025</option>
-              <option value="2024">2024</option>
-              <option value="2023">2023</option>
-              <option value="2022">2022</option>
-              <option value="2021">2021</option>
-            </select>
-            <small>2026 is not included because the IRS has not published a completed 2026 yearly-average table yet.</small>
+            <select id="currencyConverterYear"></select>
+            <small>Years appear here once the IRS publishes its yearly-average table.</small>
           </label>
 
           <label class="currency-converter-field">
@@ -1702,6 +1693,25 @@
   </div>
 
   <div id="toast" class="toast hidden"></div>
-  <script src="app.js"></script>
+  <script src="js/shortcuts.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/tax-data.js"></script>
+  <script src="js/engagement-letter.js"></script>
+  <script src="js/invoice.js"></script>
+  <script src="js/tax-calculator.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/timesheet.js"></script>
+  <script src="js/currency-converter.js"></script>
+  <script src="js/users.js"></script>
+  <script src="js/passwords.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/tree.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/preview.js"></script>
+  <script src="js/context-menus.js"></script>
+  <script src="js/actions.js"></script>
+  <script src="js/menus.js"></script>
+  <script src="js/dialogs.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

@@ -7,7 +7,7 @@ const {chromium} = require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES ? path
  try {
   const page=await browser.newPage();
   await page.setContent('<div id="output"></div>');
-  const source=fs.readFileSync(path.join(__dirname,'../dist/app.js'),'utf8');
+  const source=require('./source.cjs');
   const sanitizer=source.slice(source.indexOf('function sanitizeNotesHTML(input)'),source.indexOf('function notesEditorPlainText'));
   await page.addScriptTag({content:sanitizer});
   const cases=[

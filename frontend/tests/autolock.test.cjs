@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const source = fs.readFileSync(path.join(__dirname, '../dist/app.js'), 'utf8');
+const source = require('./source.cjs');
 const chunk = source.slice(source.indexOf('function installAutomaticLock()'), source.indexOf('let clientCommunicationsRows'));
 (async () => {
  for (const minutes of [15,30,45]) {

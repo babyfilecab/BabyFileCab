@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const app = fs.readFileSync(path.join(__dirname, '../dist/app.js'), 'utf8');
+const app = require('./source.cjs');
 const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8');
 const css = fs.readFileSync(path.join(__dirname, '../dist/style.css'), 'utf8');
 

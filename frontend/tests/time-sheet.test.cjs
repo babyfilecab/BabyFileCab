@@ -1,5 +1,5 @@
 const fs=require('fs'); const assert=require('assert');
-const html=fs.readFileSync('frontend/dist/index.html','utf8'); const js=fs.readFileSync('frontend/dist/app.js','utf8');
+const html=fs.readFileSync('frontend/dist/index.html','utf8'); const js=require('./source.cjs');
 assert(html.includes('data-menu-action="time-sheet"'));
 assert(html.includes('id="timeSheetDate"'));
 assert(html.includes('id="timeSheetDateConfirm"'));

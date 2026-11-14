@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
-const source=fs.readFileSync(path.join(__dirname,'../dist/app.js'),'utf8');
+const source=require('./source.cjs');
 const chunk=source.slice(source.indexOf('function sanitizeNotesHTML(input)'),source.indexOf('function notesEditorPlainText'));
 const escape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');
 class Element {

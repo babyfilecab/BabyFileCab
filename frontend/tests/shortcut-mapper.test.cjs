@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
-const source=fs.readFileSync(path.join(__dirname,'../dist/app.js'),'utf8');
+const source=require('./source.cjs');
 const chunk=source.slice(0,source.indexOf('async function runMappedShortcut'));
 const records=new Map();const box={structuredClone,currentUser:{companyId:'a',username:'Alice'},localStorage:{getItem:k=>records.get(k)||null,setItem:(k,v)=>records.set(k,v)},toast(){},document:{querySelector:()=>null},$:()=>null};
 vm.createContext(box);vm.runInContext(chunk,box);

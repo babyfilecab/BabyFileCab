@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');const path=require('node:path');const vm=require('node:vm');
-const source=fs.readFileSync(path.join(__dirname,'../dist/app.js'),'utf8');
+const source=require('./source.cjs');
 const start=source.indexOf('const FIRM_CALENDAR_YEARS');
 const end=source.indexOf('async function showFirmCalendar()',start);
 const box={Date,Intl};vm.createContext(box);vm.runInContext(source.slice(start,end),box);
