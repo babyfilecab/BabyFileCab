@@ -65,6 +65,12 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
 
+      - name: Windows installer tool (NSIS)
+        if: runner.os == 'Windows'
+        run: |
+          command -v makensis || choco install nsis -y --no-progress
+          echo "C:\Program Files (x86)\NSIS" >> "$GITHUB_PATH"
+
       - name: Install Wails
         run: |
           go install github.com/wailsapp/wails/v2/cmd/wails@${WAILS_VERSION}
