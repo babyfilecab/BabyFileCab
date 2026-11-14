@@ -22,8 +22,8 @@ func testWISPData() wispData {
 			{Username: "sam", FirstName: "Sam", LastName: "Rivera", Role: "staff"},
 		},
 		DataFolder: "/home/user/BabyFileCabData", AutoLock: 15,
-		Backup:    BackupSettings{Frequency: "daily", Folder: "/media/backup", Keep: 10},
-		Retention: 7, FilesChecked: 120,
+		Backup:       BackupSettings{Frequency: "daily", Folder: "/media/backup", Keep: 10},
+		FilesChecked: 120,
 	}
 }
 
@@ -36,7 +36,7 @@ func TestWISPContent(t *testing.T) {
 	for _, want := range []string{
 		"Demo Tax Office", "Next review by November 14, 2027", "Dana Demo is the firm's Data Security Coordinator",
 		"Sam Rivera (@sam), Staff", "Office desktop", "Authenticator app", "15 minutes", "daily backup to /media/backup",
-		"kept for 7 years", "all 120 files", "StateAlert@taxadmin.org", "500 or more",
+		"all 120 files", "StateAlert@taxadmin.org", "500 or more",
 	} {
 		if !strings.Contains(s, want) {
 			t.Errorf("plan is missing %q", want)

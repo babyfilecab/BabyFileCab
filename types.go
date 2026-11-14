@@ -296,7 +296,7 @@ type AuditEntry struct {
 }
 
 // AppAuditEntry is a company-wide audit record. Unlike the per-client audit
-// file, it identifies the user and affected client so the Tools > Audit Trail
+// file, it identifies the user and affected client so the Settings > Security > Audit trail
 // window can show activity across the entire BabyFileCab company workspace.
 type AppAuditEntry struct {
 	Timestamp  string `json:"timestamp"`

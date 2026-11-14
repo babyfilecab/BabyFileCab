@@ -171,7 +171,7 @@ func (a *App) BackUpNow() (BackupSettings, error) {
 	defer a.backupMu.Unlock()
 	s := a.loadBackupSettings()
 	if s.Folder == "" {
-		return s, errors.New("choose a backup folder first (Settings › Automatic Backups)")
+		return s, errors.New("choose a backup folder first (Settings › Data & Backups)")
 	}
 	s.LastRun = time.Now().Format(time.RFC3339)
 	path, size, err := a.writeFullBackup(s.Folder)

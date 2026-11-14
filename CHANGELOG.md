@@ -3,27 +3,31 @@
 ## v2.3.0 (November 2026)
 
 ### New
-- **Purple theme** (Settings › Purple Theme): a deep purple title bar with
+- **Purple theme**, now the default: a deep purple title bar with
   soft lavender accents.
 - **Scans are encrypted as soon as they arrive.** While BabyFileCab is open,
   new files in the scan inbox folder are encrypted within a few seconds and
   the unencrypted originals deleted. Unwanted scans can be discarded to the
   Recycle Bin.
-- **Encryption Check** (Settings, administrators): finds files that were
+- **Encryption Check** (Settings › Security, administrators): finds files that were
   copied into the data folder by hand, which BabyFileCab can't open, and
   encrypts them. Administrators are told at sign-in if there are any.
-- **Security Plan (WISP)** (Settings, administrators): prepares the firm's
+- **Security Plan (WISP)** (Settings › Security, administrators): prepares the firm's
   Written Information Security Plan as a PDF or Word file, filled in with
-  your users, encryption, auto sign-out, backups and record keeping. Your
-  answers are saved for next year's review.
-- **Record Keeping** (Tools): lists client tax years past the firm's period
-  (7 years after filing by default, 3 to 10 can be chosen), with Keep and
-  Move to Recycle Bin. Administrators get a reminder once a month at most.
+  your users, encryption, auto sign-out and backups. Your answers are saved
+  for next year's review.
 - **Time Sheet timer:** start a timer for a client and stop it when you're
   done; the time is filled in for you. A clock in the title bar shows it's
   running. **Repeat** copies an earlier entry.
 - **One copy at a time.** Opening BabyFileCab when it's already open brings
   the open window to the front instead of starting a second copy.
+
+### Changed
+- **Settings is one window.** Your password, theme, lock timer and keyboard
+  shortcuts are together under My Account, with separate sections for
+  Users, Data & Backups, Security, and Updates & About. The Audit Trail moved
+  here from Tools.
+- **Tools is grouped** into Workflow, Billing & Letters, and Tax.
 
 ### Fixed
 - The Firm Calendar week view no longer cuts off Sunday on smaller windows.

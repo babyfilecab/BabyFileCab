@@ -210,16 +210,6 @@ function deleteHighlightedItem() {
   else if (selectedNode.type === 'section') doAction('delete-section');
 }
 
-function openSettingsMenuFromShortcut() {
-  closeAppMenus();
-  const menu = $('settingsMenu');
-  if (!menu) return;
-  menu.classList.remove('hidden');
-  document.querySelector('.menu-trigger[data-menu="settingsMenu"]')?.classList.add('active');
-  const firstItem = menu.querySelector('button:not([disabled])');
-  setTimeout(() => firstItem?.focus(), 20);
-}
-
 function armShortcutChord(value) {
   shortcutChord = value;
   clearTimeout(shortcutChordTimer);

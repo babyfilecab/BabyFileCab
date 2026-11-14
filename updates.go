@@ -18,7 +18,7 @@ import (
 
 // Update notice: once a day BabyFileCab asks GitHub for the latest public
 // release. Only that public page is requested; nothing about the user, the
-// firm or its data is sent. Settings > Check for Updates turns it off.
+// firm or its data is sent. Settings > Updates & About turns it off.
 
 const releasesAPI = "https://api.github.com/repos/babyfilecab/BabyFileCab/releases/latest"
 const releasesPagePrefix = "https://github.com/babyfilecab/BabyFileCab/releases/"

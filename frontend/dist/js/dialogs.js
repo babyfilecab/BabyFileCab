@@ -157,27 +157,17 @@ function clientForPath(path) {
 }
 
 function updateAutoLockMenu() {
-  for (const minutes of [15, 30, 45]) {
-    const item = $(`autoLock${minutes}MenuItem`);
-    if (item) {
-      const chosen = AUTO_LOCK_MS === minutes * 60 * 1000;
-      item.textContent = `${chosen ? '✓ ' : ''}${minutes} minutes`;
-      item.setAttribute('aria-checked', String(chosen));
-    }
-  }
+  if (typeof updateSettingsAutoLock === 'function') updateSettingsAutoLock();
 }
 
 const THEMES = { light: 'Light Theme', dark: 'Dark Theme', purple: 'Purple Theme' };
 function applyTheme(theme, persist = true) {
-  currentTheme = THEMES[theme] ? theme : 'light';
+  currentTheme = THEMES[theme] ? theme : DEFAULT_THEME;
   document.documentElement.dataset.theme = currentTheme;
   if (persist) localStorage.setItem('babyfilecab-theme', currentTheme);
   const logoSource = currentTheme === 'dark' ? 'logo-dark.png' : 'logo.png';
   document.querySelectorAll('img.logo, img.auth-logo').forEach(img => { img.src = logoSource; });
-  for (const [name, label] of Object.entries(THEMES)) {
-    const item = $(`${name}ThemeMenuItem`);
-    if (item) item.textContent = `${currentTheme === name ? '✓ ' : ''}${label}`;
-  }
+  if (typeof updateSettingsTheme === 'function') updateSettingsTheme();
 }
 
 function clearPreview() {

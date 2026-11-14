@@ -33,7 +33,7 @@ async function checkEncryptionAtSignIn() {
     const report = await backend().CheckEncryption();
     if (generation !== sessionGeneration) return;
     const n = (report.unencrypted || []).length;
-    if (n) toast(`${n} file${n === 1 ? " in your data folder isn't" : "s in your data folder aren't"} encrypted. Open Settings › Encryption Check to fix ${n === 1 ? 'it' : 'them'}.`, true);
+    if (n) toast(`${n} file${n === 1 ? " in your data folder isn't" : "s in your data folder aren't"} encrypted. Open Settings › Security › Encryption check to fix ${n === 1 ? 'it' : 'them'}.`, true);
   } catch (_) { /* not important enough to interrupt sign-in */ }
 }
 

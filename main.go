@@ -67,7 +67,6 @@ type App struct {
 	lastUpdateInfo  UpdateInfo
 	auditMu         sync.Mutex
 	timesheetMu     sync.Mutex
-	retentionMu     sync.Mutex
 	inboxMu         sync.Mutex
 	tempMu          sync.Mutex
 	tempDirs        map[string]struct{}
@@ -105,7 +104,7 @@ func main() {
 		Height:           900,
 		MinWidth:         1050,
 		MinHeight:        680,
-		BackgroundColour: &options.RGBA{R: 250, G: 252, B: 255, A: 255},
+		BackgroundColour: &options.RGBA{R: 245, G: 242, B: 250, A: 255}, // purple theme page colour
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},

@@ -35,7 +35,6 @@ type wispData struct {
 	DataFolder   string
 	AutoLock     int
 	Backup       BackupSettings
-	Retention    int
 	InboxFolder  string
 	FilesChecked int
 	Unencrypted  int
@@ -75,12 +74,9 @@ func (a *App) gatherWISPData(in WISPInput) (wispData, error) {
 		}
 	}
 	report, _ := a.findUnencryptedFiles()
-	a.retentionMu.Lock()
-	retention := a.loadRetentionSettings().Years
-	a.retentionMu.Unlock()
 	return wispData{
 		Input: in, Firm: firm, Date: time.Now(), Coordinator: coordinator, Users: users,
-		DataFolder: a.dataRoot, AutoLock: autoLock, Backup: a.loadBackupSettings(), Retention: retention,
+		DataFolder: a.dataRoot, AutoLock: autoLock, Backup: a.loadBackupSettings(),
 		InboxFolder: a.inboxFolder(), FilesChecked: report.Checked, Unencrypted: len(report.Unencrypted),
 	}, nil
 }
@@ -160,7 +156,7 @@ func wispBlocks(d wispData) []engagementPDFBlock {
 		if d.Unencrypted == 0 {
 			enc += fmt.Sprintf(" On %s all %d files in the data folder were confirmed encrypted.", date, d.FilesChecked)
 		} else {
-			enc += fmt.Sprintf(" On %s, %d of %d files in the data folder were not encrypted; they are to be encrypted with Settings > Encryption Check.", date, d.Unencrypted, d.FilesChecked)
+			enc += fmt.Sprintf(" On %s, %d of %d files in the data folder were not encrypted; they are to be encrypted with Settings > Security > Encryption check.", date, d.Unencrypted, d.FilesChecked)
 		}
 	}
 	p(enc)
@@ -175,10 +171,10 @@ func wispBlocks(d wispData) []engagementPDFBlock {
 		}
 		p(text + " A backup is restored as a test at least once a year.")
 	default:
-		p("Backups. Automatic backups are not turned on in BabyFileCab (Settings > Automatic Backups). Describe how backups are made: " + wispBlank)
+		p("Backups. Automatic backups are not turned on in BabyFileCab (Settings > Data & Backups). Describe how backups are made: " + wispBlank)
 	}
-	p(fmt.Sprintf("Record keeping and disposal. Tax years are kept for %d years after filing, then reviewed in BabyFileCab's Record Keeping list and either kept for a reason or deleted. Deleted items stay in the Recycle Bin for 30 days and are then removed for good. Paper is shredded. Computers, phones and drives are wiped or destroyed before they are sold, recycled or thrown away. Under the Safeguards Rule, client information is disposed of no later than two years after it was last used for the client unless the firm needs it for business or legal reasons, such as the record-keeping period above.", d.Retention))
-	p("Monitoring. BabyFileCab records activity such as sign-ins, documents added, opened, changed and deleted, exports and settings changes in its Audit Trail (Tools > Audit Trail). The coordinator looks it over regularly for anything unusual.")
+	p("Record keeping and disposal. Client tax records are kept for " + wispBlank + " years after filing (at least three, as the IRS requires of preparers), then deleted. Deleted items stay in BabyFileCab's Recycle Bin for 30 days and are then removed for good. Paper is shredded. Computers, phones and drives are wiped or destroyed before they are sold, recycled or thrown away. Under the Safeguards Rule, client information is disposed of no later than two years after it was last used for the client unless the firm needs it for business or legal reasons, such as the record-keeping period above.")
+	p("Monitoring. BabyFileCab records activity such as sign-ins, documents added, opened, changed and deleted, exports and settings changes in its Audit Trail (Settings > Security > Audit trail). The coordinator looks it over regularly for anything unusual.")
 	p("Updates and security software. Operating systems, BabyFileCab, tax software and browsers are kept up to date. Computers run security software and a firewall.")
 	p("Training. Everyone with access to client information is trained on this plan when they start and at least once a year, including how to recognize phishing.")
 	p("Outside services. The firm uses only services that protect client information, checks how they do so before using them, and reviews them at least once a year.")

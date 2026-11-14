@@ -59,7 +59,7 @@ so BabyFileCab encrypts everything it stores.
   unencrypted originals removed. Administrators can run an Encryption Check
   to find and encrypt any files copied into the data folder by hand.
 - Only one copy of BabyFileCab can use the data folder at a time.
-- Settings › Security Plan (WISP) prepares the Written Information Security
+- Settings › Security › Security Plan (WISP) prepares the Written Information Security
   Plan every paid preparer needs, filled in from BabyFileCab's own settings.
 
 See [SECURITY-STATUS.md](SECURITY-STATUS.md) for the full details and the
@@ -91,9 +91,6 @@ known limits.
   month or year with totals per client. Administrators can see everyone's
   time. Export to a spreadsheet; billed hours are marked with the invoice
   number.
-- **Record Keeping:** lists client tax years older than the firm's period
-  (7 years after filing by default) so you can review them, put them on hold
-  or move them to the Recycle Bin. Nothing is deleted automatically.
 - **Federal Tax Calculator:** quick 2024, 2025 and 2026 estimates covering
   itemized or standard deductions, the extra amount for 65+ and blind, the
   2025–2028 senior, tips and overtime deductions, QBI, qualified dividends,
@@ -103,7 +100,7 @@ known limits.
   Treasury's December 31 rates for FBAR and Form 8938 balances.
 - **Multiple users:** add Staff and Administrator accounts for everyone in
   your firm. They all share the same client cabinet on that computer.
-- Light, dark and purple themes, and keyboard shortcuts you can remap.
+- Purple (standard), light and dark themes, and keyboard shortcuts you can remap.
 
 ## Installing
 
@@ -125,7 +122,7 @@ then shows up in your applications menu under Office. Run
 current distributions already have.
 
 Your data lives in a `BabyFileCabData` folder in your home directory. Turn on
-**Settings › Automatic Backups** and point it at an external drive, or back up
+**Settings › Data & Backups › Automatic backups** and point it at an external drive, or back up
 that whole folder yourself, and always before upgrading. The
 `.vault-keys` folder inside it is what unlocks your files, so keep it with
 the rest of the data.
@@ -178,7 +175,7 @@ Press **F1** in the app for the full manual. The ones I use most:
 | `backup_auto.go` | Automatic backups and restore |
 | `clients.go`, `tree.go`, `documents.go`, `notes.go` | The document cabinet |
 | `recycle.go`, `versions.go`, `inbox.go` | Recycle Bin, previous versions, scan inbox |
-| `retention.go`, `encryption_check.go`, `wisp.go`, `instance_lock*.go` | Record keeping, encryption check, security plan, one-copy lock |
+| `encryption_check.go`, `wisp.go`, `instance_lock*.go` | Encryption check, security plan, one-copy lock |
 | `scripts/make-purple-theme.py` | Builds `css/purple.css` from the light theme; run it after changing colours |
 | `preview.go` | Document previews |
 | `calendar*.go`, `timesheet*.go` | Firm Calendar and time sheet |

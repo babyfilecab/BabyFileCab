@@ -248,7 +248,7 @@ func (a *App) inboxFilePath(name string) (path string, encrypted bool, err error
 	}
 	folder := a.inboxFolder()
 	if folder == "" {
-		return "", false, errors.New("choose a scan inbox folder first (Settings › Scan Inbox Folder)")
+		return "", false, errors.New("choose a scan inbox folder first (Settings › Data & Backups)")
 	}
 	p := filepath.Join(folder, name)
 	info, err := os.Lstat(p)

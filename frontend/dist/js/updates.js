@@ -2,19 +2,11 @@
 
 let availableUpdate = null;
 
-async function refreshUpdateCheckMenu() {
-  const enabled = await backend().GetUpdateCheckEnabled();
-  const item = $('updateCheckMenuItem');
-  item.textContent = `${enabled ? '✓ ' : ''}Check for Updates`;
-  item.setAttribute('aria-checked', String(enabled));
-  return enabled;
-}
-
 async function checkForUpdate() {
   if (!currentUser) return;
   const generation = sessionGeneration;
   try {
-    if (!await refreshUpdateCheckMenu()) return;
+    if (!await backend().GetUpdateCheckEnabled()) return;
     const info = await backend().CheckForUpdate();
     if (generation !== sessionGeneration || !info?.available) return;
     if (localStorage.getItem('babyfilecab-update-later') === info.latest) return;
@@ -24,15 +16,6 @@ async function checkForUpdate() {
   } catch (_) {
     // Offline or GitHub unreachable: try again next sign-in.
   }
-}
-
-async function toggleUpdateCheck() {
-  const enabled = await backend().GetUpdateCheckEnabled();
-  await backend().SetUpdateCheckEnabled(!enabled);
-  await refreshUpdateCheckMenu();
-  toast(enabled ? 'BabyFileCab will no longer check for updates.' : 'BabyFileCab will check for updates once a day.');
-  if (!enabled) checkForUpdate();
-  else $('updateBanner').classList.add('hidden');
 }
 
 function wireUpdates() {

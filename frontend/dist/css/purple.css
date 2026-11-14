@@ -530,7 +530,7 @@
 :root[data-theme="purple"] .invoice-list-table th { color: var(--muted); border-bottom: 1px solid var(--line, #e7e3ef); background: #fff; }
 :root[data-theme="purple"] .invoice-list-table td { border-bottom: 1px solid var(--line, #e7e3ef); }
 :root[data-theme="purple"] .encryption-check-list { color: var(--text-2); }
-:root[data-theme="purple"] .retention-summary { color: var(--muted); }
+:root[data-theme="purple"] .form-note { color: var(--muted); }
 :root[data-theme="purple"] .invoice-paid { color: #16813c; }
 :root[data-theme="purple"] .invoice-overdue { color: #c0262d; }
 :root[data-theme="purple"] .invoice-unpaid { color: #946200; }
@@ -538,6 +538,34 @@
 :root[data-theme="purple"] .time-sheet-client-totals span { background: var(--panel-2); color: var(--text-2); }
 :root[data-theme="purple"] .time-sheet-billed { color: #16813c; }
 :root[data-theme="purple"] .time-sheet-unbilled { color: var(--muted); }
+:root[data-theme="purple"] .settings-nav { background: var(--panel); border-right: 1px solid var(--line); }
+:root[data-theme="purple"] .settings-nav-item { border: 0; background: transparent; color: var(--text-2); }
+:root[data-theme="purple"] .settings-nav-item:hover { background: var(--panel-2); border: 0; }
+:root[data-theme="purple"] .settings-nav-item.active { background: var(--accent-soft); color: var(--accent); }
+:root[data-theme="purple"] .settings-profile { border-bottom: 1px solid var(--line); }
+:root[data-theme="purple"] .settings-profile strong { color: var(--text); }
+:root[data-theme="purple"] .settings-profile span { color: var(--muted); }
+:root[data-theme="purple"] .settings-row { border-bottom: 1px solid var(--line); }
+:root[data-theme="purple"] .settings-row:last-child { border-bottom: 0; }
+:root[data-theme="purple"] .settings-row h3 { color: var(--text); }
+:root[data-theme="purple"] .settings-row p { color: var(--muted); }
+:root[data-theme="purple"] .theme-card { border: 2px solid var(--line); background: transparent; }
+:root[data-theme="purple"] .theme-card:hover { border-color: var(--line-strong); background: transparent; }
+:root[data-theme="purple"] .theme-card.active { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+:root[data-theme="purple"] .theme-preview { border: 1px solid rgba(0, 0, 0, .1); }
+:root[data-theme="purple"] .segmented { border: 1px solid var(--line-strong); }
+:root[data-theme="purple"] .segmented button { border: 0; background: transparent; }
+:root[data-theme="purple"] .segmented button + button { border-left: 1px solid var(--line-strong); }
+:root[data-theme="purple"] .segmented button:hover { background: var(--panel-2); border-color: var(--line-strong); }
+:root[data-theme="purple"] .segmented button.active, :root[data-theme="purple"] .segmented button.active:hover { background: var(--accent); color: #fff; }
+:root[data-theme="purple"] .switch input + span { background: var(--line-strong); }
+:root[data-theme="purple"] .switch input + span::after { background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
+:root[data-theme="purple"] .switch input:checked + span { background: var(--accent); }
+:root[data-theme="purple"] .switch input:focus-visible + span { box-shadow: 0 0 0 3px var(--accent-ring); }
+:root[data-theme="purple"] .sr-only { border: 0; }
+@media (max-width: 760px) {
+  :root[data-theme="purple"] .settings-nav { border-right: 0; border-bottom: 1px solid var(--line); }
+}
 
 /* from purple-extra.css */
 /* LedgerLeaf-style touches: a deep purple title bar with white text and a
@@ -549,7 +577,7 @@
 :root[data-theme="purple"] .app-header { background: var(--header); border-bottom-color: var(--header); }
 :root[data-theme="purple"] .brand-title, :root[data-theme="purple"] .signed-in-name { color: #fff; }
 :root[data-theme="purple"] .data-path, :root[data-theme="purple"] .signed-in-role { color: var(--header-sub); }
-:root[data-theme="purple"] .signed-in-avatar { background: rgba(255,255,255,.14); color: #fff; border-color: rgba(255,255,255,.28); }
+:root[data-theme="purple"] .app-header .signed-in-avatar { background: rgba(255,255,255,.14); color: #fff; border-color: rgba(255,255,255,.28); }
 :root[data-theme="purple"] #openFirmCalendarBtn.calendar-icon-button { background: rgba(255,255,255,.95); border-color: transparent; }
 :root[data-theme="purple"] #openFirmCalendarBtn.calendar-icon-button:hover { background: #fff; border-color: transparent; }
 :root[data-theme="purple"] .logo { background: #fff; border-radius: 10px; padding: 3px; }

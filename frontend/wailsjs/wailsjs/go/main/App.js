@@ -230,10 +230,6 @@ export function GetPreview(arg1) {
   return window['go']['main']['App']['GetPreview'](arg1);
 }
 
-export function GetRetentionSettings() {
-  return window['go']['main']['App']['GetRetentionSettings']();
-}
-
 export function GetTimeSheetEntries() {
   return window['go']['main']['App']['GetTimeSheetEntries']();
 }
@@ -294,10 +290,6 @@ export function ListRecycleBin() {
   return window['go']['main']['App']['ListRecycleBin']();
 }
 
-export function ListRetentionDue() {
-  return window['go']['main']['App']['ListRetentionDue']();
-}
-
 export function LogAppEvent(arg1, arg2) {
   return window['go']['main']['App']['LogAppEvent'](arg1, arg2);
 }
@@ -308,10 +300,6 @@ export function Login(arg1, arg2) {
 
 export function Logout() {
   return window['go']['main']['App']['Logout']();
-}
-
-export function MarkRetentionReminded() {
-  return window['go']['main']['App']['MarkRetentionReminded']();
 }
 
 export function MoveDocument(arg1, arg2) {
@@ -452,14 +440,6 @@ export function SetFirmCalendarStatus2026(arg1, arg2, arg3) {
 
 export function SetInvoicePaid(arg1, arg2, arg3) {
   return window['go']['main']['App']['SetInvoicePaid'](arg1, arg2, arg3);
-}
-
-export function SetRetentionHold(arg1, arg2, arg3) {
-  return window['go']['main']['App']['SetRetentionHold'](arg1, arg2, arg3);
-}
-
-export function SetRetentionYears(arg1) {
-  return window['go']['main']['App']['SetRetentionYears'](arg1);
 }
 
 export function SetUpdateCheckEnabled(arg1) {

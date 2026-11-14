@@ -77,7 +77,9 @@ function installAutomaticLock() {
   }, 5000);
 }
 let clientCommunicationsRows = [];
-let currentTheme = 'light';
+// Purple unless the person has picked another theme on this computer.
+const DEFAULT_THEME = 'purple';
+let currentTheme = DEFAULT_THEME;
 let shortcutChord = '';
 let shortcutChordTimer = null;
 let firmCalendarAssignments = [];

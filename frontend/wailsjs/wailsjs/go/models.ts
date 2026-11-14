@@ -657,46 +657,6 @@ export namespace main {
 	        this.expiresAt = source["expiresAt"];
 	    }
 	}
-	export class RetentionItem {
-	    clientId: string;
-	    clientName: string;
-	    clientPath: string;
-	    taxYear: string;
-	    path: string;
-	    pastSince: number;
-	    held: boolean;
-	
-	    static createFrom(source: any = {}) {
-	        return new RetentionItem(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.clientId = source["clientId"];
-	        this.clientName = source["clientName"];
-	        this.clientPath = source["clientPath"];
-	        this.taxYear = source["taxYear"];
-	        this.path = source["path"];
-	        this.pastSince = source["pastSince"];
-	        this.held = source["held"];
-	    }
-	}
-	export class RetentionSettings {
-	    years: number;
-	    held: string[];
-	    remindedOn?: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new RetentionSettings(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.years = source["years"];
-	        this.held = source["held"];
-	        this.remindedOn = source["remindedOn"];
-	    }
-	}
 	export class TimeSheetEntry {
 	    id: string;
 	    date: string;

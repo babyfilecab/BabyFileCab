@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="purple">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -83,51 +83,31 @@
         </div>
       </div>
       <div class="menu-root">
-        <button class="menu-trigger" type="button" data-menu="settingsMenu">Settings</button>
-        <div class="menu-dropdown hidden" id="settingsMenu" role="menu">
-          <button type="button" data-menu-action="shortcut-mapper">Keyboard Shortcuts…</button>
-          <button type="button" data-menu-action="change-password">Change Password…</button>
-          <button type="button" data-menu-action="inbox-folder">Scan Inbox Folder…</button>
-          <button type="button" data-menu-action="auto-backup">Automatic Backups…</button>
-          <button type="button" class="admin-only" data-menu-action="encryption-check">Encryption Check…</button>
-          <button type="button" class="admin-only" data-menu-action="wisp">Security Plan (WISP)…</button>
-          <button id="updateCheckMenuItem" type="button" role="menuitemcheckbox" data-menu-action="toggle-update-check">✓ Check for Updates</button>
-          <div class="menu-separator"></div>
-          <button type="button" data-menu-action="manage-users">Manage Users… <span class="menu-shortcut">M</span></button>
-          <button type="button" data-menu-action="create-company-user">Create User Under Existing Company…</button>
-          <div class="menu-separator"></div>
-          <div class="menu-label">Auto-lock after inactivity</div>
-          <button id="autoLock15MenuItem" type="button" role="menuitemradio" aria-checked="true" data-menu-action="auto-lock-15">✓ 15 minutes</button>
-          <button id="autoLock30MenuItem" type="button" role="menuitemradio" aria-checked="false" data-menu-action="auto-lock-30">30 minutes</button>
-          <button id="autoLock45MenuItem" type="button" role="menuitemradio" aria-checked="false" data-menu-action="auto-lock-45">45 minutes</button>
-          <div class="menu-separator"></div>
-          <button id="lightThemeMenuItem" type="button" data-menu-action="theme-light">✓ Light Theme</button>
-          <button id="darkThemeMenuItem" type="button" data-menu-action="theme-dark">Dark Theme</button>
-          <button id="purpleThemeMenuItem" type="button" data-menu-action="theme-purple">Purple Theme</button>
-        </div>
-      </div>
-      <div class="menu-root">
         <button class="menu-trigger" type="button" data-menu="toolsMenu">Tools</button>
         <div class="menu-dropdown hidden" id="toolsMenu" role="menu">
-          <button type="button" data-menu-action="tax-calculator">Federal Tax Calculator…</button>
+          <div class="menu-label">Workflow</div>
           <button type="button" data-menu-action="firm-calendar">Firm Calendar…</button>
           <button type="button" data-menu-action="needs-attention">Needs Attention…</button>
-          <button type="button" data-menu-action="engagement-letter">Engagement Letter Generator…</button>
+          <div class="menu-separator"></div>
+          <div class="menu-label">Billing &amp; Letters</div>
+          <button type="button" data-menu-action="engagement-letter">Engagement Letter…</button>
           <button type="button" data-menu-action="create-invoice">Create an Invoice…</button>
           <button type="button" data-menu-action="invoice-list">Invoices…</button>
-          <button type="button" data-menu-action="currency-converter">Currency Converter (IRS)…</button>
-          <button type="button" data-menu-action="app-audit-trail">Audit Trail…</button>
-          <button type="button" data-menu-action="retention">Record Keeping…</button>
+          <div class="menu-separator"></div>
+          <div class="menu-label">Tax</div>
+          <button type="button" data-menu-action="tax-calculator">Federal Tax Calculator…</button>
+          <button type="button" data-menu-action="currency-converter">Currency Converter…</button>
         </div>
       </div>
       <div class="menu-root">
         <button class="menu-trigger menu-direct-action" type="button" data-menu-action="time-sheet">Time Sheet</button>
       </div>
       <div class="menu-root">
+        <button class="menu-trigger menu-direct-action" type="button" data-menu-action="settings">Settings</button>
+      </div>
+      <div class="menu-root">
         <button class="menu-trigger" type="button" data-menu="helpMenu">Help</button>
         <div class="menu-dropdown hidden" id="helpMenu" role="menu">
-          <button type="button" data-menu-action="open-data-folder">Open Data Folder</button>
-          <div class="menu-separator"></div>
           <button type="button" data-menu-action="how-to-use">How to Use BabyFileCab</button>
           <button type="button" data-menu-action="user-manual">User Manual <span class="menu-shortcut">F1</span></button>
           <div class="menu-separator"></div>
@@ -140,12 +120,6 @@
       <span id="updateBannerText"></span>
       <button id="updateDownload" class="primary" type="button">Download</button>
       <button id="updateLater" class="secondary" type="button">Later</button>
-    </div>
-
-    <div id="retentionBanner" class="update-banner hidden" role="status">
-      <span id="retentionBannerText"></span>
-      <button id="retentionReview" class="primary" type="button">Review</button>
-      <button id="retentionLater" class="secondary" type="button">Remind Me Next Month</button>
     </div>
 
     <header class="app-header">
@@ -240,6 +214,112 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <div id="settingsBackdrop" class="modal-backdrop hidden">
+    <div class="modal settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <aside class="settings-nav" aria-label="Settings sections">
+        <h2 id="settingsTitle">Settings</h2>
+        <button type="button" class="settings-nav-item active" data-settings-section="account">My Account</button>
+        <button type="button" class="settings-nav-item admin-only" data-settings-section="users">Users</button>
+        <button type="button" class="settings-nav-item" data-settings-section="data">Data &amp; Backups</button>
+        <button type="button" class="settings-nav-item" data-settings-section="security">Security</button>
+        <button type="button" class="settings-nav-item" data-settings-section="updates">Updates &amp; About</button>
+      </aside>
+      <div class="settings-body">
+        <button id="settingsClose" class="secondary settings-close" type="button">Close</button>
+
+        <section class="settings-section" data-settings-panel="account">
+          <div class="settings-profile">
+            <div id="settingsAvatar" class="signed-in-avatar settings-avatar" aria-hidden="true"></div>
+            <div><strong id="settingsName"></strong><span id="settingsRole"></span></div>
+          </div>
+          <div class="settings-row">
+            <div><h3>Password</h3><p>Change the password you use to sign in.</p></div>
+            <button type="button" class="secondary" data-menu-action="change-password">Change Password…</button>
+          </div>
+          <div class="settings-row settings-row-stack">
+            <div><h3>Theme</h3><p>Remembered on this computer.</p></div>
+            <div class="theme-cards" role="radiogroup" aria-label="Theme">
+              <button type="button" class="theme-card" role="radio" data-theme-choice="purple"><span class="theme-preview" style="background:#f5f2fa"><i style="background:#3a1e63;border-bottom:1px solid rgba(0,0,0,.08)"></i><b style="background:#fbf9fe;border-right:1px solid rgba(0,0,0,.06)"></b><em style="background:#7446c9"></em></span>Purple</button>
+              <button type="button" class="theme-card" role="radio" data-theme-choice="light"><span class="theme-preview" style="background:#ffffff"><i style="background:#ffffff;border-bottom:1px solid rgba(0,0,0,.08)"></i><b style="background:#f8fafc;border-right:1px solid rgba(0,0,0,.06)"></b><em style="background:#2563eb"></em></span>Light</button>
+              <button type="button" class="theme-card" role="radio" data-theme-choice="dark"><span class="theme-preview" style="background:#0f172a"><i style="background:#0b1120;border-bottom:1px solid rgba(0,0,0,.08)"></i><b style="background:#1e293b;border-right:1px solid rgba(0,0,0,.06)"></b><em style="background:#3b82f6"></em></span>Dark</button>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div><h3>Lock after inactivity</h3><p>BabyFileCab signs out after this long without use, and when the computer sleeps or locks.</p></div>
+            <div class="segmented" role="radiogroup" aria-label="Lock after inactivity">
+              <button type="button" role="radio" data-auto-lock="15">15 min</button>
+              <button type="button" role="radio" data-auto-lock="30">30 min</button>
+              <button type="button" role="radio" data-auto-lock="45">45 min</button>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div><h3>Keyboard shortcuts</h3><p>See and change the keys for common actions.</p></div>
+            <button type="button" class="secondary" data-menu-action="shortcut-mapper">Customize…</button>
+          </div>
+        </section>
+
+        <section class="settings-section hidden" data-settings-panel="users">
+          <h2 class="settings-heading">Users</h2>
+          <div class="settings-row">
+            <div><h3>Manage users</h3><p>See everyone in the firm, change roles, reset passwords and remove accounts.</p></div>
+            <button type="button" class="secondary" data-menu-action="manage-users">Manage Users…</button>
+          </div>
+          <div class="settings-row">
+            <div><h3>Add a user</h3><p>Create a Staff or Administrator account in this company.</p></div>
+            <button type="button" class="secondary" data-menu-action="create-company-user">Add User…</button>
+          </div>
+        </section>
+
+        <section class="settings-section hidden" data-settings-panel="data">
+          <h2 class="settings-heading">Data &amp; Backups</h2>
+          <div class="settings-row">
+            <div><h3>Automatic backups</h3><p id="settingsBackupStatus">Not set up.</p></div>
+            <button id="settingsBackupButton" type="button" class="secondary admin-only" data-menu-action="auto-backup">Set Up…</button>
+          </div>
+          <div class="settings-row">
+            <div><h3>Scan inbox folder</h3><p id="settingsInboxStatus">Not set up.</p></div>
+            <div class="settings-actions">
+              <button id="settingsInboxClear" type="button" class="secondary hidden">Stop Watching</button>
+              <button id="settingsInboxChoose" type="button" class="secondary">Choose Folder…</button>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div><h3>Data folder</h3><p id="settingsDataFolder" class="settings-path"></p></div>
+            <button type="button" class="secondary" data-menu-action="open-data-folder">Open Folder</button>
+          </div>
+        </section>
+
+        <section class="settings-section hidden" data-settings-panel="security">
+          <h2 class="settings-heading">Security</h2>
+          <div class="settings-row admin-only">
+            <div><h3>Encryption check</h3><p>Find and encrypt files that were copied into the data folder by hand.</p></div>
+            <button type="button" class="secondary" data-menu-action="encryption-check">Run Check…</button>
+          </div>
+          <div class="settings-row admin-only">
+            <div><h3>Security plan (WISP)</h3><p>Prepare the Written Information Security Plan every paid preparer needs, filled in from these settings.</p></div>
+            <button type="button" class="secondary" data-menu-action="wisp">Prepare Plan…</button>
+          </div>
+          <div class="settings-row">
+            <div><h3>Audit trail</h3><p>Who signed in, and who added, changed or deleted what, and when.</p></div>
+            <button type="button" class="secondary" data-menu-action="app-audit-trail">Open Audit Trail…</button>
+          </div>
+        </section>
+
+        <section class="settings-section hidden" data-settings-panel="updates">
+          <h2 class="settings-heading">Updates &amp; About</h2>
+          <div class="settings-row">
+            <div><h3>Check for updates</h3><p>Once a day, BabyFileCab checks whether a newer version is out and lets you know. Nothing is downloaded without asking.</p></div>
+            <label class="switch"><input id="settingsUpdateCheck" type="checkbox" /><span aria-hidden="true"></span><span class="sr-only">Check for updates</span></label>
+          </div>
+          <div class="settings-row">
+            <div><h3>Version</h3><p id="settingsVersion"></p></div>
+            <button type="button" class="secondary" data-menu-action="about">About BabyFileCab…</button>
+          </div>
+        </section>
+      </div>
+    </div>
   </div>
 
   <div id="addClientBackdrop" class="modal-backdrop hidden">
@@ -861,7 +941,7 @@
 
           <h3>Audit Trail</h3>
           <div class="shortcut-grid">
-            <kbd>Tools</kbd><span>Open <strong>Audit Trail…</strong> to review company-wide BabyFileCab activity.</span>
+            <kbd>Settings</kbd><span>Open <strong>Settings › Security › Audit trail</strong> to review company-wide BabyFileCab activity.</span>
             <kbd>Search</kbd><span>Filter the history by user, client, action, or details.</span>
             <kbd>Refresh</kbd><span>Reload the latest activity from the local company workspace.</span>
           </div>
@@ -874,22 +954,21 @@
             <kbd>Stop</kbd><span>Click <strong>Stop Timer</strong> (or the clock, then Stop). The date, client and time worked are filled in; check them and click Add Time.</span>
             <kbd>Repeat</kbd><span>Click <strong>Repeat</strong> on any of your entries to fill in the same client, work and hours for another day.</span>
           </div>
-          <h3>Record Keeping</h3>
-          <div class="shortcut-grid">
-            <kbd>Tools</kbd><span>Open <strong>Record Keeping…</strong> to see client tax years older than the firm's period (7 years after filing unless an administrator changes it).</span>
-            <kbd>Keep</kbd><span>Administrators can put a tax year on hold, for example during an audit, so it stays off the list.</span>
-            <kbd>Delete</kbd><span><strong>Move to Recycle Bin</strong> keeps the tax year for 30 days before it's gone. Nothing is ever deleted automatically.</span>
-          </div>
           <h3>Security</h3>
           <div class="shortcut-grid">
             <kbd>Scans</kbd><span>New scans in the scan inbox folder are encrypted into BabyFileCab within a few seconds while it's open, and the unencrypted originals are removed.</span>
-            <kbd>Check</kbd><span>Administrators: <strong>Settings › Encryption Check…</strong> finds files copied into the data folder by hand and encrypts them.</span>
-            <kbd>Plan</kbd><span>Administrators: <strong>Settings › Security Plan (WISP)…</strong> prepares the firm's Written Information Security Plan from BabyFileCab's settings, as a PDF or Word file.</span>
+            <kbd>Check</kbd><span>Administrators: <strong>Settings › Security › Encryption check</strong> finds files copied into the data folder by hand and encrypts them.</span>
+            <kbd>Plan</kbd><span>Administrators: <strong>Settings › Security › Security plan (WISP)</strong> prepares the firm's Written Information Security Plan from BabyFileCab's settings, as a PDF or Word file.</span>
             <kbd>One copy</kbd><span>Only one copy of BabyFileCab can be open at a time. Opening it again brings the open window to the front.</span>
           </div>
-          <h3>Themes</h3>
+          <h3>Settings</h3>
           <div class="shortcut-grid">
-            <kbd>Settings</kbd><span>Choose <strong>Light</strong>, <strong>Dark</strong> or <strong>Purple Theme</strong>. The choice is remembered on this computer.</span>
+            <kbd>My Account</kbd><span>Change your password, pick the Purple (standard), Light or Dark theme, choose how soon BabyFileCab locks when you step away, and customize keyboard shortcuts.</span>
+            <kbd>Users</kbd><span>Administrators add people and manage their accounts.</span>
+            <kbd>Data</kbd><span>Automatic backups, the scan inbox folder, and where your data is kept.</span>
+            <kbd>Security</kbd><span>Encryption check and security plan (administrators), and the audit trail.</span>
+            <kbd>Updates</kbd><span>Turn the daily update check on or off, and see which version you have.</span>
+            <kbd>G then S</kbd><span>Opens Settings from the keyboard.</span>
           </div>
         </section>
 
@@ -1965,43 +2044,6 @@
     </div>
   </div>
 
-  <div id="retentionBackdrop" class="modal-backdrop hidden">
-    <div class="modal invoice-list-modal" role="dialog" aria-modal="true" aria-labelledby="retentionTitle">
-      <div class="needs-attention-head">
-        <div>
-          <h2 id="retentionTitle">Record Keeping</h2>
-          <p>The IRS asks preparers to keep a copy of each return, or a list of the returns, for at least 3 years after filing. Many firms keep 7. Tax years past your period are listed here so you can decide what to do with them. Nothing is deleted automatically.</p>
-        </div>
-        <button id="retentionCloseTop" class="secondary" type="button">Close</button>
-      </div>
-      <div class="invoice-list-filters">
-        <label>Keep tax years for
-          <select id="retentionYears" aria-label="Years to keep after filing">
-            <option value="3">3 years</option><option value="4">4 years</option><option value="5">5 years</option><option value="6">6 years</option>
-            <option value="7">7 years</option><option value="8">8 years</option><option value="9">9 years</option><option value="10">10 years</option>
-          </select>
-          after filing</label>
-        <select id="retentionShow" aria-label="Show">
-          <option value="due">Ready to review</option>
-          <option value="held">On hold</option>
-          <option value="all">All</option>
-        </select>
-        <input id="retentionSearch" type="search" placeholder="Client name" aria-label="Search clients" />
-      </div>
-      <p id="retentionSummary" class="retention-summary"></p>
-      <div class="invoice-list-scroll">
-        <table class="invoice-list-table">
-          <thead><tr><th>Client</th><th>Tax year</th><th>Past the period since</th><th>Status</th><th></th></tr></thead>
-          <tbody id="retentionBody"></tbody>
-        </table>
-        <p id="retentionEmpty" class="recycle-bin-empty hidden">Nothing to review.</p>
-      </div>
-      <div class="modal-actions">
-        <button id="retentionClose" class="primary" type="button">Done</button>
-      </div>
-    </div>
-  </div>
-
   <div id="encryptionCheckBackdrop" class="modal-backdrop hidden">
     <div class="modal invoice-list-modal" role="dialog" aria-modal="true" aria-labelledby="encryptionCheckTitle">
       <div class="needs-attention-head">
@@ -2028,7 +2070,7 @@
       <div class="needs-attention-head">
         <div>
           <h2 id="wispTitle">Written Information Security Plan</h2>
-          <p>Every paid tax preparer needs a written plan for protecting client data (FTC Safeguards Rule, IRS Publication 5708). BabyFileCab fills in your users, encryption, auto sign-out, backups and record keeping from its own settings. Add what it can't know below; anything left empty is a blank line to fill in by hand.</p>
+          <p>Every paid tax preparer needs a written plan for protecting client data (FTC Safeguards Rule, IRS Publication 5708). BabyFileCab fills in your users, encryption, auto sign-out and backups from its own settings. Add what it can't know below; anything left empty is a blank line to fill in by hand.</p>
         </div>
         <button id="wispCloseTop" class="secondary" type="button">Close</button>
       </div>
@@ -2038,7 +2080,7 @@
         <label class="form-field"><span>Other software and services that hold client information</span><textarea id="wispServices" class="modal-input" rows="2" maxlength="2000" placeholder="For example: tax software, email, e-signature, client portal, cloud storage, payroll"></textarea></label>
         <label class="form-field"><span>How multi-factor sign-in is used</span><textarea id="wispMFA" class="modal-input" rows="2" maxlength="2000" placeholder="For example: authenticator app for email, tax software and the client portal; Windows Hello on office computers"></textarea></label>
         <label class="form-field"><span>Other notes (optional)</span><textarea id="wispNotes" class="modal-input" rows="2" maxlength="2000"></textarea></label>
-        <p id="wispLastMade" class="retention-summary"></p>
+        <p id="wispLastMade" class="form-note"></p>
       </div>
       <div class="modal-actions">
         <button id="wispClose" class="secondary" type="button" style="margin-right:auto">Cancel</button>
@@ -2069,9 +2111,9 @@
   <script src="js/recycle-bin.js"></script>
   <script src="js/inbox.js"></script>
   <script src="js/backups.js"></script>
-  <script src="js/retention.js"></script>
   <script src="js/encryption-check.js"></script>
   <script src="js/wisp.js"></script>
+  <script src="js/settings.js"></script>
   <script src="js/updates.js"></script>
   <script src="js/menus.js"></script>
   <script src="js/dialogs.js"></script>

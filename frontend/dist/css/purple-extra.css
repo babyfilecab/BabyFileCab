@@ -7,7 +7,7 @@
 :root[data-theme="purple"] .app-header { background: var(--header); border-bottom-color: var(--header); }
 :root[data-theme="purple"] .brand-title, :root[data-theme="purple"] .signed-in-name { color: #fff; }
 :root[data-theme="purple"] .data-path, :root[data-theme="purple"] .signed-in-role { color: var(--header-sub); }
-:root[data-theme="purple"] .signed-in-avatar { background: rgba(255,255,255,.14); color: #fff; border-color: rgba(255,255,255,.28); }
+:root[data-theme="purple"] .app-header .signed-in-avatar { background: rgba(255,255,255,.14); color: #fff; border-color: rgba(255,255,255,.28); }
 :root[data-theme="purple"] #openFirmCalendarBtn.calendar-icon-button { background: rgba(255,255,255,.95); border-color: transparent; }
 :root[data-theme="purple"] #openFirmCalendarBtn.calendar-icon-button:hover { background: #fff; border-color: transparent; }
 :root[data-theme="purple"] .logo { background: #fff; border-radius: 10px; padding: 3px; }

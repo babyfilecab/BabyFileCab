@@ -5,7 +5,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   installPasswordVisibilityToggles();
   installPasswordStrengthMeters();
   wireEvents();
-  applyTheme(localStorage.getItem('babyfilecab-theme') || 'light', false);
+  applyTheme(localStorage.getItem('babyfilecab-theme') || DEFAULT_THEME, false);
   await waitForBackend();
   wireNativeFileDrop();
   await initialiseAuth();
@@ -83,7 +83,6 @@ async function enterApplication(user) {
   startBackupSchedule();
   updateTimerUI();
   checkForUpdate();
-  checkRetentionReminder();
   checkEncryptionAtSignIn();
 }
 
@@ -94,7 +93,6 @@ async function signOut() {
   stopInboxWatch();
   stopBackupSchedule();
   $('updateBanner')?.classList.add('hidden');
-  $('retentionBanner')?.classList.add('hidden');
   hideCalendarScheduleClient();
   hideCalendarPreparerReassign();
   hideShortcutMapper();

@@ -54,19 +54,13 @@ func TestStaffCannotChangeSecuritySettings(t *testing.T) {
 	a.currentUser.Role = "staff"
 	a.authMu.Unlock()
 	for name, call := range map[string]func() error{
-		"record-keeping period": func() error { _, err := a.SetRetentionYears(5); return err },
-		"hold a tax year":       func() error { _, err := a.SetRetentionHold("00001", "2018", true); return err },
-		"encryption check":      func() error { _, err := a.CheckEncryption(); return err },
-		"encrypt files":         func() error { _, err := a.EncryptUnencryptedFiles(); return err },
-		"security plan":         func() error { _, err := a.GetWISPInput(); return err },
-		"make security plan":    func() error { _, err := a.GenerateWISP(WISPInput{}, "pdf"); return err },
+		"encryption check":   func() error { _, err := a.CheckEncryption(); return err },
+		"encrypt files":      func() error { _, err := a.EncryptUnencryptedFiles(); return err },
+		"security plan":      func() error { _, err := a.GetWISPInput(); return err },
+		"make security plan": func() error { _, err := a.GenerateWISP(WISPInput{}, "pdf"); return err },
 	} {
 		if err := call(); err == nil || !strings.Contains(err.Error(), "only an administrator") {
 			t.Errorf("%s as staff: got %v, want administrator error", name, err)
 		}
-	}
-	// Staff can still see the record-keeping list.
-	if _, err := a.ListRetentionDue(); err != nil {
-		t.Fatalf("staff list retention: %v", err)
 	}
 }

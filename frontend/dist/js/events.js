@@ -6,9 +6,9 @@ function wireEvents() {
   wireInbox();
   wireBackups();
   wireUpdates();
-  wireRetention();
   wireEncryptionCheck();
   wireWISP();
+  wireSettings();
   $('documentVersionsList').addEventListener('click', e => call(() => handleDocumentVersionClick(e)));
   $('needsAttentionBtn').addEventListener('click', () => call(() => refreshNeedsAttention({ open: true })));
   $('needsAttentionClose').addEventListener('click', hideNeedsAttention);
@@ -501,7 +501,7 @@ function wireEvents() {
     if (!appWorkspaceActive() || e.repeat || e.isComposing) return;
     if (shortcutChord === 'g' && !ctrl && !e.altKey && !e.shiftKey && !activeElementIsEditable() && !modalIsOpen()) {
       shortcutChord = ''; clearTimeout(shortcutChordTimer);
-      if (lower === 's') { e.preventDefault(); openSettingsMenuFromShortcut(); return; }
+      if (lower === 's') { e.preventDefault(); showSettings('account'); return; }
     }
     const binding = shortcutFromEvent(e);
     const action = SHORTCUT_ACTIONS.find(item => shortcutBindings[item.id].includes(binding));
@@ -519,7 +519,6 @@ function wireEvents() {
       if (!$('engagementWordingBackdrop').classList.contains('hidden')) { e.preventDefault(); hideEngagementWordingEditor(); return; }
       if (!$('invoiceTimeBackdrop').classList.contains('hidden')) { e.preventDefault(); hideInvoiceTimePicker(); return; }
       if (!$('invoiceListBackdrop').classList.contains('hidden')) { e.preventDefault(); hideInvoiceList(); return; }
-      if (!$('retentionBackdrop').classList.contains('hidden')) { e.preventDefault(); hideRetention(); return; }
       if (!$('encryptionCheckBackdrop').classList.contains('hidden')) { e.preventDefault(); hideEncryptionCheck(); return; }
       if (!$('wispBackdrop').classList.contains('hidden')) { e.preventDefault(); hideWISP(); return; }
       if (!$('engagementLetterBackdrop').classList.contains('hidden')) { e.preventDefault(); hideEngagementLetter(); return; }
@@ -535,6 +534,8 @@ function wireEvents() {
       if (!$('modalBackdrop').classList.contains('hidden')) { e.preventDefault(); closeModal(null); return; }
       if (!$('existingCompanyUserBackdrop').classList.contains('hidden')) { e.preventDefault(); hideExistingCompanyUser(); return; }
       if (!$('createAccountBackdrop').classList.contains('hidden')) { e.preventDefault(); hideCreateAccount(); return; }
+      // Settings closes last, and only when nothing it opened is still on top.
+      if (!$('settingsBackdrop').classList.contains('hidden') && !settingsEscapeBlocked) { e.preventDefault(); hideSettings(); return; }
     }
 
     // Single-key workflow shortcuts only run in the main workspace while the

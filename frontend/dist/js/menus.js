@@ -90,8 +90,8 @@ async function handleMenuAction(action) {
       case 'global-find':
         showGlobalFind();
         break;
-      case 'toggle-update-check':
-        await toggleUpdateCheck();
+      case 'settings':
+        await showSettings('account');
         break;
       case 'auto-backup':
         await showBackupSettings();
@@ -158,15 +158,6 @@ async function handleMenuAction(action) {
         toast(`Auto-lock set to ${minutes} minutes of inactivity.`);
         break;
       }
-      case 'theme-light':
-        applyTheme('light');
-        break;
-      case 'theme-dark':
-        applyTheme('dark');
-        break;
-      case 'theme-purple':
-        applyTheme('purple');
-        break;
       case 'tax-calculator':
         await backend().LogAppEvent('Federal Tax Calculator opened', 'Tools menu');
         showTaxCalculator();
@@ -192,9 +183,6 @@ async function handleMenuAction(action) {
         break;
       case 'invoice-list':
         await showInvoiceList();
-        break;
-      case 'retention':
-        await showRetention();
         break;
       case 'encryption-check':
         await showEncryptionCheck();
