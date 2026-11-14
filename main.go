@@ -897,6 +897,21 @@ func (a *App) Login(username, password string) (UserProfile, error) {
 			return UserProfile{}, errors.New("the company assigned to this account could not be found")
 		}
 		vaultKey, keyErr := a.unwrapKey(company.ID, u.Username, password)
+		if keyErr != nil && errors.Is(keyErr, os.ErrNotExist) && u.KeyWrapID == "" && u.PasswordKDF == "" {
+			// Pre-encryption company: the first administrator creates the key;
+			// everyone else waits to be enrolled by that administrator.
+			if u.Role != "administrator" {
+				return UserProfile{}, errors.New("your account is pending vault enrollment: ask a company administrator to sign in and enroll you")
+			}
+			legacyRoot, rootErr := a.companyDataRootUnlocked(company)
+			if rootErr != nil {
+				return UserProfile{}, rootErr
+			}
+			vaultKey, keyErr = a.bootstrapLegacyVaultKey(company, legacyRoot, u.Username, password)
+			if errors.Is(keyErr, os.ErrExist) {
+				return UserProfile{}, errors.New("your account is pending vault enrollment: ask an administrator who can already unlock this company to enroll you")
+			}
+		}
 		if keyErr != nil {
 			if errors.Is(keyErr, os.ErrNotExist) {
 				return UserProfile{}, errors.New("company vault key is missing: restore the encrypted key file from a complete backup, or ask an administrator who can already unlock this company to enroll your account; no replacement key was created")

@@ -212,3 +212,59 @@ func (a *App) vaultDecrypt(data []byte) ([]byte, error) {
 	}()
 	return openWithKey(key, data[len(vaultFileMagic):], []byte("BabyFileCab-content-v2"))
 }
+
+// companyHasVaultKeys reports whether any user of the company already has a
+// wrapped vault key (current or versioned) on disk.
+func (a *App) companyHasVaultKeys(companyID string) (bool, error) {
+	dir := filepath.Dir(a.wrappedKeyPath(companyID, "_"))
+	entries, err := os.ReadDir(dir)
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	for _, e := range entries {
+		if !e.IsDir() && !strings.HasPrefix(e.Name(), ".bfc-write-") {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// bootstrapLegacyVaultKey creates the first company key for a company that
+// predates encryption. It refuses whenever any key or encrypted data already
+// exists, so a lost key is never silently replaced.
+func (a *App) bootstrapLegacyVaultKey(company CompanyProfile, root, username, password string) ([]byte, error) {
+	hasKeys, err := a.companyHasVaultKeys(company.ID)
+	if err != nil {
+		return nil, err
+	}
+	if hasKeys {
+		return nil, os.ErrExist
+	}
+	for _, name := range []string{vaultDBName, vaultReadyName} {
+		if _, err := os.Stat(filepath.Join(root, name)); err == nil {
+			return nil, os.ErrExist
+		} else if !errors.Is(err, os.ErrNotExist) {
+			return nil, err
+		}
+	}
+	key, err := randomBytes(vaultKeySize)
+	if err != nil {
+		return nil, err
+	}
+	if err := a.writeWrappedKey(company.ID, username, password, key); err != nil {
+		zeroBytes(key)
+		return nil, err
+	}
+	check, err := a.unwrapKey(company.ID, username, password)
+	if err != nil || subtle.ConstantTimeCompare(check, key) != 1 {
+		zeroBytes(check)
+		zeroBytes(key)
+		_ = os.Remove(a.wrappedKeyPath(company.ID, username))
+		return nil, errors.New("could not verify the new company vault key")
+	}
+	zeroBytes(check)
+	return key, nil
+}
