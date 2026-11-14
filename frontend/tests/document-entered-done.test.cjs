@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const app = require('./source.cjs');
 const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8');
-const css = fs.readFileSync(path.join(__dirname, '../dist/style.css'), 'utf8');
+const css = ['base.css', 'theme.css'].map(f => fs.readFileSync(path.join(__dirname, '../dist/css', f), 'utf8')).join('\n');
 
 assert.match(html, /data-document-action="done"[^>]*>Entered \/ Done<\/button>/);
 assert.match(app, /SetDocumentEnteredDone\(doc\.path, !Boolean\(doc\.done\)\)/);
