@@ -1,6 +1,37 @@
-# BabyFileCab change history
+# Changelog
 
-Earlier release notes, moved here from README.md. Newest first.
+## v2.1.0 (November 2026)
+
+### New
+- **Needs Attention list.** When you sign in, BabyFileCab shows returns that
+  have been waiting on reports, an 8879 or a signature for a week or more,
+  signed returns that haven't been filed, and clients whose scheduled date
+  has passed. Staff see their own clients; administrators see the whole
+  firm. Click Open to jump straight to the client on the calendar. A bell in
+  the header shows the count.
+- **Fresh look.** Calmer colors, a smaller header, crisp icons in the client
+  tree, a one-row toolbar and matching dialogs, in both light and dark mode.
+- **Stronger passwords.** New passwords need at least 12 characters, and a
+  strength meter helps you pick a good one. Existing passwords still work.
+- **Calendar keeps going.** The Firm Calendar now always covers this year and
+  the next two, and invoices and engagement letters offer every tax year up
+  to the current one. Nothing to update when January comes.
+- **Linux app menu.** `install.sh` adds BabyFileCab to your applications menu.
+- **Builds for every platform.** Windows installer and portable ZIP, macOS
+  for Apple Silicon and Intel, and Linux.
+
+### Fixed
+- Users upgrading from the original, unencrypted version could not sign in.
+  The first administrator now sets up the vault and can then enroll everyone
+  else.
+- Windows: saving to the vault could fail with "Access Denied".
+- Windows: a document with `&` in its name could run a second command when
+  opened.
+- Invoice and engagement letter dates showed tomorrow's date in the evening.
+- Searching a PDF for several words could garble the highlighted text.
+- The invoice window logged an error every time it opened.
+
+## Earlier versions
 
 ## Signature and e-file calendar statuses
 

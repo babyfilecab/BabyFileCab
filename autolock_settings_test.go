@@ -6,7 +6,9 @@ import (
 )
 
 func TestAutoLockChoicesPersistAndExpire(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("USERPROFILE", home)
 	a, err := NewApp()
 	if err != nil {
 		t.Fatal(err)

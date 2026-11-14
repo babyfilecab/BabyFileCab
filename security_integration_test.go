@@ -15,6 +15,7 @@ import (
 func TestEncryptedCompanyEnrollmentAndBackup(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
+	t.Setenv("USERPROFILE", home)
 	a, err := NewApp()
 	if err != nil {
 		t.Fatal(err)
@@ -185,6 +186,7 @@ func TestInterruptedMigrationResumesWithoutPlaintext(t *testing.T) {
 func TestLegacyCompanyRequiresUserEnrollment(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
+	t.Setenv("USERPROFILE", home)
 	root := filepath.Join(home, "BabyFileCabData")
 	client := filepath.Join(root, "00001 - Existing Client")
 	if err := os.MkdirAll(filepath.Join(client, permanentFolder), 0700); err != nil {

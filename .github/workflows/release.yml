@@ -1,0 +1,123 @@
+name: Release
+
+# Push a tag like v2.1.0 to build, test and attach downloads for every platform.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build, e.g. v2.1.0
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  TAG: ${{ github.event.inputs.tag || github.ref_name }}
+  WAILS_VERSION: v2.16.0
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Make sure the release exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 ||
+            gh release create "$TAG" -R "$GITHUB_REPOSITORY" --verify-tag --draft --title "BabyFileCab $TAG" --notes "Release notes coming soon."
+
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux
+            runner: ubuntu-24.04
+          - name: windows
+            runner: windows-latest
+          - name: macos-apple-silicon
+            runner: macos-15
+            arch: arm64
+          - name: macos-intel
+            runner: macos-15-intel
+            arch: amd64
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Linux build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - name: Install Wails
+        run: |
+          go install github.com/wailsapp/wails/v2/cmd/wails@${WAILS_VERSION}
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Run tests
+        run: |
+          go test ./...
+          for f in frontend/tests/*.test.cjs; do node "$f"; done
+
+      - name: Build Linux
+        if: runner.os == 'Linux'
+        run: |
+          wails build -clean -tags webkit2_41
+          dir="BabyFileCab-${TAG}-Linux-x64"
+          mkdir "$dir"
+          cp build/bin/BabyFileCab "$dir/"
+          cp build/appicon.png "$dir/babyfilecab.png"
+          cp build/linux/install.sh build/linux/babyfilecab.desktop.in "$dir/"
+          tar -czf "$dir.tar.gz" "$dir"
+          echo "ASSETS=$dir.tar.gz" >> "$GITHUB_ENV"
+
+      - name: Build Windows
+        if: runner.os == 'Windows'
+        run: |
+          wails build -clean -platform windows/amd64 -webview2 download -nsis
+          mv build/bin/BabyFileCab-amd64-installer.exe "BabyFileCab-${TAG}-Windows-x64-Setup.exe"
+          mkdir portable && cp build/bin/BabyFileCab.exe portable/
+          pwsh -Command "Compress-Archive -Path portable/BabyFileCab.exe -DestinationPath BabyFileCab-${TAG}-Windows-x64-Portable.zip"
+          echo "ASSETS=BabyFileCab-${TAG}-Windows-x64-Setup.exe BabyFileCab-${TAG}-Windows-x64-Portable.zip" >> "$GITHUB_ENV"
+
+      - name: Build macOS
+        if: runner.os == 'macOS'
+        run: |
+          wails build -clean -platform darwin/${{ matrix.arch }}
+          label=$([ "${{ matrix.arch }}" = arm64 ] && echo AppleSilicon || echo Intel)
+          ditto -c -k --keepParent build/bin/BabyFileCab.app "BabyFileCab-${TAG}-macOS-${label}.zip"
+          echo "ASSETS=BabyFileCab-${TAG}-macOS-${label}.zip" >> "$GITHUB_ENV"
+
+      - name: Attach to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" $ASSETS --clobber
+
+  checksums:
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Add SHA256SUMS.txt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir dl && cd dl
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" --pattern 'BabyFileCab-*'
+          sha256sum BabyFileCab-* > SHA256SUMS.txt
+          gh release upload "$TAG" SHA256SUMS.txt -R "$GITHUB_REPOSITORY" --clobber

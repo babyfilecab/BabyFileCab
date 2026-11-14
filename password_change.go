@@ -85,13 +85,7 @@ func (a *App) ChangePassword(currentPassword, newPassword, confirmation string) 
 			return err
 		}
 		// Persist the directory entry before committing the credential reference.
-		directory, err := os.Open(filepath.Dir(newPath))
-		if err != nil {
-			return err
-		}
-		err = directory.Sync()
-		directory.Close()
-		if err != nil {
+		if err := syncVaultDirectory(filepath.Dir(newPath)); err != nil {
 			return err
 		}
 		hash := argon2.IDKey([]byte(newPassword), salt, 3, 64*1024, 4, passwordKeyLength)

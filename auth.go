@@ -561,12 +561,7 @@ func (a *App) saveUsersUnlocked(users []storedUser) error {
 	if err := writeAtomicPrivate(a.usersPath(), data); err != nil {
 		return err
 	}
-	dir, err := os.Open(a.storageRoot)
-	if err != nil {
-		return err
-	}
-	defer dir.Close()
-	return dir.Sync()
+	return syncVaultDirectory(a.storageRoot)
 }
 
 func (a *App) loadCompaniesUnlocked() ([]CompanyProfile, error) {
