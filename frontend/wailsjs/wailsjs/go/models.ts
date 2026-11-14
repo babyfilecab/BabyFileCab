@@ -227,6 +227,7 @@ export namespace main {
 	    clientPath?: string;
 	    returnType?: string;
 	    status?: string;
+	    statusSince?: string;
 	    preparerUsername?: string;
 	
 	    static createFrom(source: any = {}) {
@@ -241,6 +242,7 @@ export namespace main {
 	        this.clientPath = source["clientPath"];
 	        this.returnType = source["returnType"];
 	        this.status = source["status"];
+	        this.statusSince = source["statusSince"];
 	        this.preparerUsername = source["preparerUsername"];
 	    }
 	}
