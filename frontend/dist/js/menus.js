@@ -90,6 +90,12 @@ async function handleMenuAction(action) {
       case 'global-find':
         showGlobalFind();
         break;
+      case 'scan-inbox':
+        await showInbox();
+        break;
+      case 'inbox-folder':
+        await chooseInboxFolder();
+        break;
       case 'recycle-bin':
         await showRecycleBin();
         break;

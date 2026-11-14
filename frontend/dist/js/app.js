@@ -77,12 +77,14 @@ async function enterApplication(user) {
   $('dataPath').textContent = `Data: ${await backend().DataRoot()}`;
   await refreshTree();
   refreshNeedsAttention({ atSignIn: true }).catch(() => {});
+  startInboxWatch();
 }
 
 async function signOut() {
   sessionGeneration++;
   hideNeedsAttention();
   $('needsAttentionBtn').classList.add('hidden');
+  stopInboxWatch();
   hideCalendarScheduleClient();
   hideCalendarPreparerReassign();
   hideShortcutMapper();

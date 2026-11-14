@@ -350,3 +350,15 @@ tr:first-child { background: var(--panel-2); font-weight: 600; }
 .document-versions-title { display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-2); }
 .document-versions .needs-attention-list { max-height: 220px; }
 .document-versions small { display: block; margin-top: 6px; color: var(--muted); }
+
+/* Scan inbox ------------------------------------------------------------------- */
+.inbox-button { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; border: 1px solid #bfdbfe; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: 13px; }
+.inbox-button:hover { background: #dbeafe; border-color: #93c5fd; color: var(--accent-hover); }
+.inbox-button.hidden { display: none; }
+.inbox-modal { width: min(820px, calc(100vw - 60px)); max-height: calc(100vh - 80px); display: flex; flex-direction: column; }
+.inbox-destination { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.inbox-destination label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; }
+.inbox-destination select { padding: 8px 10px; }
+.inbox-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.inbox-item-info input { width: 100%; padding: 6px 9px; font-weight: 600; }
+:root[data-theme="dark"] .inbox-button { background: var(--accent-soft); border-color: rgba(59,130,246,.4); color: #93c5fd; }

@@ -51,6 +51,7 @@
           <button type="button" data-menu-action="rename-client-picker">Rename Client…</button>
           <button type="button" data-menu-action="delete-client-picker" class="menu-danger">Delete Client…</button>
           <button type="button" data-menu-action="recycle-bin">Recycle Bin…</button>
+          <button type="button" data-menu-action="scan-inbox">Scan Inbox…</button>
           <div class="menu-separator"></div>
           <button type="button" data-menu-action="restore-client">Restore Client…</button>
           <button type="button" data-menu-action="archive-client">Archive Client…</button>
@@ -85,6 +86,7 @@
         <div class="menu-dropdown hidden" id="settingsMenu" role="menu">
           <button type="button" data-menu-action="shortcut-mapper">Keyboard Shortcuts…</button>
           <button type="button" data-menu-action="change-password">Change Password…</button>
+          <button type="button" data-menu-action="inbox-folder">Scan Inbox Folder…</button>
           <div class="menu-separator"></div>
           <button type="button" data-menu-action="manage-users">Manage Users… <span class="menu-shortcut">M</span></button>
           <button type="button" data-menu-action="create-company-user">Create User Under Existing Company…</button>
@@ -141,6 +143,7 @@
           <div id="signedInName" class="signed-in-name"></div>
           <div id="signedInRole" class="signed-in-role"></div>
         </div>
+        <button class="inbox-button hidden" id="inboxBtn" type="button" title="New scans waiting to be filed" aria-label="Scan inbox"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 11.5 5 4.5h10l2 7v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M3 11.5h4l1 2h4l1-2h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span id="inboxCount">0</span></button>
         <button class="attention-button hidden" id="needsAttentionBtn" type="button" title="Calendar items that need attention" aria-label="Calendar items that need attention"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 2.5a5 5 0 0 0-5 5v2.7l-1.3 2.6a.8.8 0 0 0 .7 1.2h11.2a.8.8 0 0 0 .7-1.2L15 10.2V7.5a5 5 0 0 0-5-5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 16a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span id="needsAttentionCount">0</span></button>
         <button class="calendar-icon-button" id="openFirmCalendarBtn" type="button" title="Open Firm Calendar" aria-label="Open Firm Calendar"><img src="calendar-icon.png" width="32" height="32" alt="" /></button>
       </div>
@@ -1655,6 +1658,29 @@
     </div>
   </div>
 
+  <div id="inboxBackdrop" class="modal-backdrop hidden">
+    <div class="modal inbox-modal" role="dialog" aria-modal="true" aria-labelledby="inboxTitle">
+      <div class="needs-attention-head">
+        <div>
+          <h2 id="inboxTitle">Scan Inbox</h2>
+          <p id="inboxFolderLabel"></p>
+        </div>
+        <button id="inboxCloseTop" class="secondary" type="button">Close</button>
+      </div>
+      <div class="inbox-destination">
+        <label><span>Client</span><select id="inboxClient"></select></label>
+        <label><span>Folder</span><select id="inboxFolder"></select></label>
+      </div>
+      <ul id="inboxList" class="needs-attention-list"></ul>
+      <p id="inboxEmpty" class="recycle-bin-empty hidden">No new scans. Files saved to the inbox folder show up here.</p>
+      <div class="modal-actions">
+        <button id="inboxChangeFolder" class="secondary" type="button" style="margin-right:auto">Change Folder…</button>
+        <button id="inboxRefresh" class="secondary" type="button">Refresh</button>
+        <button id="inboxClose" class="primary" type="button">Done</button>
+      </div>
+    </div>
+  </div>
+
   <div id="recycleBinBackdrop" class="modal-backdrop hidden">
     <div class="modal recycle-bin-modal" role="dialog" aria-modal="true" aria-labelledby="recycleBinTitle">
       <div class="needs-attention-head">
@@ -1737,6 +1763,7 @@
   <script src="js/context-menus.js"></script>
   <script src="js/actions.js"></script>
   <script src="js/recycle-bin.js"></script>
+  <script src="js/inbox.js"></script>
   <script src="js/menus.js"></script>
   <script src="js/dialogs.js"></script>
   <script src="js/app.js"></script>
