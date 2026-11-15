@@ -11,7 +11,7 @@ federal tax estimator.
 
 **[Download the latest release](https://github.com/babyfilecab/BabyFileCab/releases/latest)** for Windows, macOS or Linux.
 
-Website: **[www.babyfilecab.com](https://www.babyfilecab.com)**
+Website: **[babyfilecab.com](https://babyfilecab.com)**
 
 ## Document management
 
